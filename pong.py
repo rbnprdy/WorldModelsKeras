@@ -5,6 +5,8 @@ from tensorflow.keras.layers import Dense
 from tensorflow.keras.models import Sequential
 from tensorflow.keras import callbacks
 
+import matplotlib.pyplot as plt
+
 from logger import tflog
 
 # preprocessing used by Karpathy (cf. https://gist.github.com/karpathy/a4166c7fe253700972fcbc77e4ea32c5)
@@ -44,6 +46,8 @@ model.add(Dense(units=200,input_dim=80*80, activation='relu', kernel_initializer
 
 # output layer
 model.add(Dense(units=1, activation='sigmoid', kernel_initializer='RandomNormal'))
+
+model.load_weights('current_weights.h5')
 
 # compile the model using traditional Machine Learning losses and optimizers
 model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
