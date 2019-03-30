@@ -1,4 +1,6 @@
 data
+record
+checkpoints
 __pycache__
 logs
 *.h5
