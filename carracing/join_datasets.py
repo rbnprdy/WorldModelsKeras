@@ -1,12 +1,13 @@
 """Joins a set of hdf5 datasets into one dataset."""
 import argparse
 import os
+import random
 
 import h5py
 import numpy as np
 
 DATA_SHAPE = (64, 64, 3)
-ACTION_SHAPE = (3)
+ACTION_SHAPE = 3
 TOTAL_NUM = 12800000
 NUM_PER_FILE = 1000*200
 
@@ -22,7 +23,6 @@ def main():
     output_path = args.output_file
 
     file_list = os.listdir(data_path)
-
     if not os.path.exists(os.path.split(output_path)[0]):
         os.makedirs(os.path.split(output_path)[0])
 
@@ -31,11 +31,17 @@ def main():
                                          shape=(TOTAL_NUM, *DATA_SHAPE),
                                          dtype=np.uint8)
         action = output_file.create_dataset('action',
-                                            shape=(TOTAL_NUM, *ACTION_SHAPE))
+                                            shape=(TOTAL_NUM, ACTION_SHAPE),
+                                            dtype=np.float16)
 
         for i, f in enumerate(file_list):
-            with h5py.File(f, 'r') as input_file:
+            print('joining file', i, 'of', len(file_list), end='\r')
+            with h5py.File(os.path.join(data_path, f), 'r') as input_file:
                 obs_in = input_file.get('obs')
                 action_in = input_file.get('action')
-                obs[i*NUM_PER_FILE:(i+1)*NUM_PER_FILE] = obs_in
-                action[i*NUM_PER_FILE:(i+1)*NUM_PER_FILE] = action_in
+                obs[i*NUM_PER_FILE:(i+1)*NUM_PER_FILE] = obs_shuffled
+                action[i*NUM_PER_FILE:(i+1)*NUM_PER_FILE] = action_shuffled
+
+
+if __name__=='__main__':
+    main()
