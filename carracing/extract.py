@@ -16,16 +16,7 @@ import h5py
 
 from env import make_env
 
-def main():
-    parser = argparse.ArgumentParser(
-            description='Generate training data for the vae model.')
-    parser.add_argument('--output_file', '-o', default='data/train.h5',
-                        help='The directory to place the output data in.')
-    parser.add_argument('--max_frames', type=int, default=1000,
-                        help='The max frames for one episode.')
-    parser.add_argument('--max_trials', type=int, default=200,
-                        help='The max number of trials to run.')
-    args = parser.parse_args()
+def main(args):
     output_file = args.output_file
     max_frames = args.max_frames
     max_trials = args.max_trials
@@ -79,4 +70,12 @@ def main():
     f.close()
 
 if __name__=='__main__':
-    main()
+    parser = argparse.ArgumentParser(
+            description='Generate training data for the vae model.')
+    parser.add_argument('--output_file', '-o', default='data/train.h5',
+                        help='The directory to place the output data in.')
+    parser.add_argument('--max_frames', type=int, default=1000,
+                        help='The max frames for one episode.')
+    parser.add_argument('--max_trials', type=int, default=200,
+                        help='The max number of trials to run.')
+    main(parser.parse_args())

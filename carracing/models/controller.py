@@ -1,6 +1,7 @@
 from tensorflow.keras.layers import Input, Dense, Concatenate
 from tensorflow.keras.models import Model
 
+
 # CarRacing-v0 environment has 3 actions:
 #   1. Steering: Real valued in [-1, 1]
 #   2. Gas: Real valued in [0, 1]
