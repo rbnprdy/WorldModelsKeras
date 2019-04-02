@@ -39,8 +39,8 @@ def main():
             with h5py.File(os.path.join(data_path, f), 'r') as input_file:
                 obs_in = input_file.get('obs')
                 action_in = input_file.get('action')
-                obs[i*NUM_PER_FILE:(i+1)*NUM_PER_FILE] = obs_shuffled
-                action[i*NUM_PER_FILE:(i+1)*NUM_PER_FILE] = action_shuffled
+                obs[i*NUM_PER_FILE:(i+1)*NUM_PER_FILE] = obs_in
+                action[i*NUM_PER_FILE:(i+1)*NUM_PER_FILE] = action_in
 
 
 if __name__=='__main__':
