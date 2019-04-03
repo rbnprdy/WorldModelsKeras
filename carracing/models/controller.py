@@ -17,8 +17,8 @@ def get_controller(input_shape,
     # Define new layer for each neuron (so that they can have different
     # activations)
     xs = [0]*num_neurons
-    for i in num_neurons:
-        xs[i] = Dense(num_neurons,
+    for i in range(num_neurons):
+        xs[i] = Dense(1,
                       activation=activations[i],
                       name='x{}'.format(i))(inputs)
     # Concatenate outputs

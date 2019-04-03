@@ -32,15 +32,35 @@ def pdf(y, pis, mus, sigmas):
     return result
 
 
-def get_rnn(input_shape, lstm_dim=256, output_sequence_width=32, num_mixtures=5):
+def get_rnn(input_shape,
+            lstm_dim=256,
+            output_sequence_width=32,
+            num_mixtures=5,
+            train=True):
     inputs = Input(shape=input_shape, name='rnn_input')
-    x, _, _ = LSTM(lstm_dim, return_sequences=True, return_state=True, name='lstm')(inputs)
+    lstm = LSTM(lstm_dim,
+                return_sequences=True,
+                return_state=True,
+                name='lstm')
+    # Model for inference
+    state_input_h = Input(shape=(lstm_dim,))
+    state_input_c = Input(shape=(lstm_dim,))
+    state_inputs = [state_input_h, state_input_c]
+    _ , state_h, state_c = lstm(inputs,
+                                initial_state=[state_input_h, state_input_c])
+    inference = Model([inputs] + state_inputs,
+                      [state_h, state_c],
+                      name='mdn-rnn-inference')
+    # Model for training
+    x, _, _ = lstm(inputs)
     pis_flat = Dense(output_sequence_width*num_mixtures, name='pis')(x)
     mus_flat = Dense(output_sequence_width*num_mixtures, name='mus')(x)
-    sigmas_flat = Dense(output_sequence_width*num_mixtures, activation=K.exp, name='sigmas')(x)
+    sigmas_flat = Dense(output_sequence_width*num_mixtures,
+                        activation=K.exp,
+                        name='sigmas')(x)
     outputs = Concatenate()([pis_flat, mus_flat, sigmas_flat])
-    rnn = Model(inputs, outputs, name='mdn-rnn')
-    
+    rnn = Model(inputs, outputs, name='mdn-rnn-training')
+
     def rnn_loss(y_true, y_pred):
         # Flattened output sequences and mixtures
         flat = output_sequence_width*num_mixtures
@@ -67,7 +87,5 @@ def get_rnn(input_shape, lstm_dim=256, output_sequence_width=32, num_mixtures=5)
         return K.mean(-K.log(pdf(y, pis, mus, sigmas) + 1e-8), axis=(1,2))
 
     rnn.loss = rnn_loss
-    
-    rnn.summary()
 
-    return rnn
+    return rnn, inference

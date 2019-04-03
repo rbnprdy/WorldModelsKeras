@@ -29,13 +29,13 @@ def main(args):
 
     checkpoint = ModelCheckpoint(checkpoint_path, monitor='train_loss')
 
-    rnn = get_rnn(data_shape)
+    rnn, _ = get_rnn(data_shape)
     rnn.compile(loss=rnn.loss, optimizer='adam')
     rnn.fit(x_train, y_train,
 	        epochs=epochs,
 	        batch_size=batch_size,
 	        shuffle='batch',
-            callbacks=[checkpoint])
+                callbacks=[checkpoint])
 
 
 if __name__=='__main__':
