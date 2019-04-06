@@ -5,3 +5,4 @@ __pycache__
 logs
 *.h5
 .ipynb_checkpoints/
+*.pyc

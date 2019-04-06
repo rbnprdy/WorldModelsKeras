@@ -89,11 +89,19 @@ def main(args):
                 break
 
         print('At the end of episode', epoch, 'total reward is', np.sum(rewards))
-        controller.fit(x_train,
-                       y_train,
+        test_y = y_train[:10]
+        print('y_train[:10]', y_train[:10])
+        test_pred = controller.predict(x_train[:10])
+        print('predictions[:10]', test_pred)
+        print('mean', np.mean(np.square(test_y - test_pred)))
+        print('rewards[:10]', rewards[:10])
+        #print('mean * rewards', np.mean(np.square(test_y - test_pred)*discount_rewards(rewards[:10], gamma)), axis=-1)
+        controller.fit(x_train[:10],
+                       y_train[:10],
                        verbose=1,
-                       sample_weight=discount_rewards(rewards, gamma))
+                       sample_weight=discount_rewards(rewards[:10], gamma))
 
+        quit()
         controller.save_weights(checkpoint_path)
         # adjust randomness
         disturbance /= (1 + decay*epoch)
