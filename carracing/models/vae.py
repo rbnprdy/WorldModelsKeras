@@ -45,7 +45,6 @@ def get_vae(input_shape, latent_dim,
     z = Lambda(sampling, output_shape=(latent_dim,), name='z')([mu, sigma])
 
     encoder = Model(inputs, [mu, sigma, z], name='encoder')
-    encoder.summary()
 
     latent_inputs = Input(shape=(latent_dim,), name='decoder_input')
     x = Dense(filters[-1]*kernels[-1], name='decoder_dense')(latent_inputs)
@@ -65,7 +64,6 @@ def get_vae(input_shape, latent_dim,
                               name='decoder_output')(x)
 
     decoder = Model(latent_inputs, outputs, name='decoder')
-    decoder.summary()
     outputs = decoder(encoder(inputs)[2])
     vae = Model(inputs, outputs, name='vae')
 

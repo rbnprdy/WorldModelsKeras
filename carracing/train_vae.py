@@ -42,6 +42,6 @@ if __name__=='__main__':
                         help='The batch size to use for training.')
     parser.add_argument('--checkpoint_path', default='checkpoints/vae.h5',
                         help='The path to save the checkpoint at.')
-    parser.add_argument('--train_size', type=int, default=1000000,
+    parser.add_argument('--train_size', type=int, default=10000000,
                         help='The number of images to use for training.')
     main(parser.parse_args())

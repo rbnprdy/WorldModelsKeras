@@ -1,7 +1,6 @@
 """Joins a set of hdf5 datasets into one dataset."""
 import argparse
 import os
-import random
 
 import h5py
 import numpy as np

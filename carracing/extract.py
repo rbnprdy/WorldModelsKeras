@@ -50,6 +50,7 @@ def main(args):
 
                 obs, reward, done, info = env.step(action)
 
+                # FIXME: Other code assumes that `done` is never reached
                 if done:
                     break
 
@@ -61,6 +62,8 @@ def main(args):
             dset_action[trial*max_frames:(1+trial)*max_frames] = recording_action
             print(time.time() - start)
         except gym.error.Error:
+            # FIXME: This was never happening to me...could probably just
+            # delete and only generate 10000 trials
             print("stupid gym error, life goes on")
             env.close()
             env = make_env(render_mode=render_mode)
