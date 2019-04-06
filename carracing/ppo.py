@@ -89,7 +89,7 @@ class Agent:
         self.reward = []
         self.rolling_r = []
         self.gradient_steps = 0
-        self.writer = SummaryWriter('AllRuns/ppo')
+        self.writer = SummaryWriter('logs/')
 
     def process_observation(self, obs, action):
         encoded_obs = self.encoder.predict(np.expand_dims(obs, axis=0))[0]
