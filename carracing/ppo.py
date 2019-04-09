@@ -1,9 +1,5 @@
-# Initial framework taken from https://github.com/jaara/AI-blog/blob/master/CartPole-A3C.py
-
 import numpy as np
-
 import gym
-
 from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Input, Dense, Lambda, Concatenate
 from tensorflow.keras import backend as K
@@ -12,7 +8,6 @@ from models.vae import get_vae
 from models.rnn import get_rnn
 from models.controller import get_controller
 from env import make_env
-
 import numba as nb
 from tensorboardX import SummaryWriter
 
@@ -21,20 +16,29 @@ LATENT_DIM = 32
 
 EPISODES = 100000
 
+LOG_INTERVAL = 10
+
 LOSS_CLIPPING = 0.2 # Only implemented clipping for the surrogate loss, paper said it was best
-EPOCHS = 10
-NOISE = 1.0 # Exploration noise
+#EPOCHS = 10
+EPOCHS = 4
+#NOISE = 1.0 # Exploration noise
+NOISE = 0.1
 
-GAMMA = 0.99
+#GAMMA = 0.99
+GAMMA = 0.9
 
-BUFFER_SIZE = 2000
+REPEAT_ACTION = 8
+
+TRIAL_SIZE = 1000
+#BUFFER_SIZE = 2000
+BUFFER_SIZE = 6400
 BATCH_SIZE = 64
 NUM_ACTIONS = 3
-NUM_STATE = 8
-HIDDEN_SIZE = 128
-NUM_LAYERS = 2
-ENTROPY_LOSS = 1e-3
-LR = 1e-4 # Lower lr stabilises training greatly
+LR = 1e-5 # Lower lr stabilises training greatly
+#LR = 1e-3
+
+#MIN_REWARD = -0.1
+MIN_REWARD = -0.2
 
 DUMMY_ACTION, DUMMY_VALUE = np.zeros((1, NUM_ACTIONS)), np.zeros((1, 1))
 
@@ -66,7 +70,6 @@ def proximal_policy_optimization_loss(advantage, old_prediction):
 
 class Agent:
     def __init__(self):
-
         vae = get_vae((64, 64, 3), LATENT_DIM)
         vae.load_weights('checkpoints/vae.h5')
 
@@ -85,11 +88,11 @@ class Agent:
         self.h = np.zeros((1, LSTM_DIM))
         self.c = np.zeros((1, LSTM_DIM))
         self.observation = self.process_observation(self.env.reset(), self.env.action_space.sample())
-        self.val = False
+        # self.val = False
         self.reward = []
-        self.rolling_r = []
         self.gradient_steps = 0
         self.writer = SummaryWriter('logs/')
+        self.av_r = self.reward_memory()
 
     def process_observation(self, obs, action):
         encoded_obs = self.encoder.predict(np.expand_dims(obs, axis=0))[0]
@@ -100,13 +103,13 @@ class Agent:
 
     def build_actor(self):
         state_input = Input(shape=[LSTM_DIM+LATENT_DIM], name='state_input')
-        advantage = Input(shape=(1,))
-        old_prediction = Input(shape=(NUM_ACTIONS,))
+        advantage = Input(shape=(1,), name='advantage_input')
+        old_prediction = Input(shape=(NUM_ACTIONS,), name='old_prediction_input')
 
-        hidden = Dense(40,
-                       activation='tanh',
-                       name='hidden')(state_input)
-
+        #hidden = Dense(40,
+        #               activation='tanh',
+        #               name='hidden')(state_input)
+        hidden = state_input
         x = Dense(3,
                   activation='tanh',
                   name='output')(hidden)
@@ -124,9 +127,9 @@ class Agent:
         return model
 
     def build_critic(self):
-
-        state_input = Input(shape=(LSTM_DIM + LATENT_DIM,))
-        x = Dense(40, activation='tanh')(state_input)
+        state_input = Input(shape=(LSTM_DIM + LATENT_DIM,), name='state_input')
+        #x = Dense(40, activation='tanh')(state_input)
+        x = state_input
         out_value = Dense(1)(x)
 
         model = Model(inputs=[state_input], outputs=[out_value])
@@ -136,89 +139,112 @@ class Agent:
 
     def reset_env(self):
         self.episode += 1
-        if self.episode % 100 == 0:
-            self.val = True
-        else:
-            self.val = False
         self.observation = self.process_observation(self.env.reset(), self.env.action_space.sample())
-        self.reward = []
+        self.av_r = self.reward_memory()
 
     def get_action(self):
         p = self.actor.predict([self.observation, DUMMY_VALUE, DUMMY_ACTION])
-        if self.val is False:
-            action = action_matrix = p[0] + np.random.normal(loc=0, scale=NOISE, size=p[0].shape)
-        else:
-            action = action_matrix = p[0]
+        action = action_matrix = p[0] + np.random.normal(loc=0, scale=NOISE, size=p[0].shape)
         return action, action_matrix, p
 
-    def transform_reward(self):
-        if self.val is True:
-            self.writer.add_scalar('Val episode reward', np.array(self.reward).sum(), self.episode)
-        else:
-            self.writer.add_scalar('Episode reward', np.array(self.reward).sum(), self.episode)
-        
-        self.rolling_r += self.reward
-        self.reward = np.clip(self.reward / np.std(self.rolling_r), -10, 10)
 
+    # https://github.com/xtma/pytorch_car_caring/blob/master/train.py
+    def step(self, action):
+        total_reward = 0
+        for i in range(REPEAT_ACTION):
+            observation, reward, done, _ = self.env.step(action)
+            if done:
+                reward += 100
+            if np.mean(observation[:, :, 1]) > 185.0:
+                reward -= 0.05
+            total_reward += reward
+            # if no reward recently, end the episode
+            stop = True if self.av_r(reward) <= MIN_REWARD else False
+            if done or stop:
+                break
+        return observation, total_reward, stop, done
+
+    def transform_reward(self):
         for j in range(len(self.reward) - 2, -1, -1):
             self.reward[j] += self.reward[j + 1] * GAMMA
 
-    def get_batch(self):
-        batch = [[], [], [], []]
+    def train(self, obs, action, pred, reward):
+        obs, action, pred, reward = obs[:BUFFER_SIZE], action[:BUFFER_SIZE], pred[:BUFFER_SIZE], reward[:BUFFER_SIZE]
+        old_prediction = pred
+        pred_values = self.critic.predict(obs[:,0,:])
 
-        tmp_batch = [[], [], []]
-        while len(batch[0]) < BUFFER_SIZE:
-            # self.env.render()
-            action, action_matrix, predicted_action = self.get_action()
-            observation, reward, done, info = self.env.step(action)
-            self.reward.append(reward)
+        advantage = reward - pred_values
+        # advantage = (advantage - advantage.mean()) / advantage.std()
+        actor_loss = self.actor.fit([obs[:,0,:], advantage, old_prediction[:,0,:]], [action], batch_size=BATCH_SIZE, shuffle=True, epochs=EPOCHS, verbose=False)
+        critic_loss = self.critic.fit([obs[:,0,:]], [reward], batch_size=BATCH_SIZE, shuffle=True, epochs=EPOCHS, verbose=False)
+        print('Actor loss:', actor_loss.history['loss'][-1], 'at', self.gradient_steps)
+        print('Critic loss:', critic_loss.history['loss'][-1], 'at', self.gradient_steps)
+        self.writer.add_scalar('Actor loss', actor_loss.history['loss'][-1], self.gradient_steps)
+        self.writer.add_scalar('Critic loss', critic_loss.history['loss'][-1], self.gradient_steps)
+        self.gradient_steps += 1
 
-            tmp_batch[0].append(self.observation)
-            tmp_batch[1].append(action_matrix)
-            tmp_batch[2].append(predicted_action)
-            self.observation = self.process_observation(observation, action)
-
-            if done or len(tmp_batch[0]) == BUFFER_SIZE:
-                self.transform_reward()
-                print('done with batch, reward:', sum(self.reward))
-                if self.val is False:
-                    for i in range(len(tmp_batch[0])):
-                        obs, action, pred = tmp_batch[0][i], tmp_batch[1][i], tmp_batch[2][i]
-                        r = self.reward[i]
-                        batch[0].append(obs)
-                        batch[1].append(action)
-                        batch[2].append(pred)
-                        batch[3].append(r)
-                tmp_batch = [[], [], []]
-                self.reset_env()
-
-        obs, action, pred, reward = np.array(batch[0]), np.array(batch[1]), np.array(batch[2]), np.reshape(np.array(batch[3]), (len(batch[3]), 1))
-        pred = np.reshape(pred, (pred.shape[0], pred.shape[2]))
-        return obs, action, pred, reward
 
     def run(self):
 
-        self.actor.load_weights('checkpoints/actor.h5')
-        self.critic.load_weights('checkpoints/critic.h5')
-        
+        # self.actor.load_weights('checkpoints/actor.h5')
+        # self.critic.load_weights('checkpoints/critic.h5')
+
+        running_score = 0
+
+        observations = []
+        actions = []
+        predictions = []
+        self.reward = []
+
         while self.episode < EPISODES:
-            obs, action, pred, reward = self.get_batch()
-            obs, action, pred, reward = obs[:BUFFER_SIZE], action[:BUFFER_SIZE], pred[:BUFFER_SIZE], reward[:BUFFER_SIZE]
-            old_prediction = pred
-            pred_values = self.critic.predict(obs[:,0,:])
 
-            advantage = reward - pred_values
-            # advantage = (advantage - advantage.mean()) / advantage.std()
-            actor_loss = self.actor.fit([obs[:,0,:], advantage, old_prediction], [action], batch_size=BATCH_SIZE, shuffle=True, epochs=EPOCHS, verbose=False)
-            critic_loss = self.critic.fit([obs[:,0,:]], [reward], batch_size=BATCH_SIZE, shuffle=True, epochs=EPOCHS, verbose=False)
-            print('Actor loss:', actor_loss.history['loss'][-1], 'at', self.gradient_steps)
-            print('Critic loss:', critic_loss.history['loss'][-1], 'at', self.gradient_steps)
-            self.writer.add_scalar('Actor loss', actor_loss.history['loss'][-1], self.gradient_steps)
-            self.writer.add_scalar('Critic loss', critic_loss.history['loss'][-1], self.gradient_steps)
-            self.actor.save_weights('checkpoints/actor.h5')
-            self.critic.save_weights('checkpoints/critic.h5')
+            score = 0
+            self.reset_env()
 
-            self.gradient_steps += 1
+            for t in range(TRIAL_SIZE):
+                action, action_matrix, predicted_action = self.get_action()
+                observation, reward, stop, done = self.step(action)
+                self.observation = self.process_observation(observation, action)
+                observations.append(self.observation)
+                actions.append(action)
+                predictions.append(predicted_action)
+                self.reward.append(reward)
+                if len(observations) == BUFFER_SIZE:
+                    self.transform_reward()
+                    self.train(np.array(observations), np.array(actions),
+                               np.array(predictions),
+                               np.reshape(np.array(self.reward), (len(self.reward), 1)))
+                    observations = []
+                    actions = []
+                    predictions = []
+                    self.reward = []
+                score += reward
+                if stop or done:
+                    break
+
+            running_score = running_score * 0.99 + score * 0.01
+
+            if self.episode % LOG_INTERVAL == 0:
+                self.writer.add_scalar('Score', score, self.episode)
+                self.writer.add_scalar('Moving Average Score', running_score, self.episode)
+                self.actor.save_weights('checkpoints/actor.h5')
+                self.critic.save_weights('checkpoints/critic.h5')
+
+
+    @staticmethod
+    def reward_memory():
+        # record reward for last 100 steps
+        count = 0
+        length = 100
+        history = np.zeros(length)
+
+        def memory(reward):
+            nonlocal count
+            history[count] = reward
+            count = (count + 1) % length
+            return np.mean(history)
+
+        return memory
 
 
 if __name__ == '__main__':
