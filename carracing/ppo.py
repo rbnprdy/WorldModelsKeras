@@ -16,7 +16,7 @@ LATENT_DIM = 32
 
 EPISODES = 100000
 
-LOG_INTERVAL = 10
+LOG_INTERVAL = 100
 
 LOSS_CLIPPING = 0.2 # Only implemented clipping for the surrogate loss, paper said it was best
 #EPOCHS = 10
@@ -31,14 +31,14 @@ REPEAT_ACTION = 8
 
 TRIAL_SIZE = 1000
 #BUFFER_SIZE = 2000
-BUFFER_SIZE = 6400
-BATCH_SIZE = 64
+BUFFER_SIZE = 2560
+BATCH_SIZE = 128
 NUM_ACTIONS = 3
-LR = 1e-5 # Lower lr stabilises training greatly
+LR = 1e-4 # Lower lr stabilises training greatly
 #LR = 1e-3
 
-#MIN_REWARD = -0.1
-MIN_REWARD = -0.2
+MIN_REWARD = -0.1
+#MIN_REWARD = -0.2
 
 DUMMY_ACTION, DUMMY_VALUE = np.zeros((1, NUM_ACTIONS)), np.zeros((1, 1))
 
@@ -109,7 +109,7 @@ class Agent:
         #hidden = Dense(40,
         #               activation='tanh',
         #               name='hidden')(state_input)
-        hidden = state_input
+        hidden = Dense(100, activation='relu', name='hidden')(state_input)
         x = Dense(3,
                   activation='tanh',
                   name='output')(hidden)
@@ -128,8 +128,7 @@ class Agent:
 
     def build_critic(self):
         state_input = Input(shape=(LSTM_DIM + LATENT_DIM,), name='state_input')
-        #x = Dense(40, activation='tanh')(state_input)
-        x = state_input
+        x = Dense(100, activation='relu')(state_input)
         out_value = Dense(1)(x)
 
         model = Model(inputs=[state_input], outputs=[out_value])
