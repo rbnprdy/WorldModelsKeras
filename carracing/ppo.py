@@ -96,13 +96,15 @@ class Agent:
 
     def process_observation(self, obs, action):
         encoded_obs = self.encoder.predict(np.expand_dims(obs, axis=0))[0]
+        return encoded_obs
         expanded_action = np.expand_dims(action, axis=0)
         obs_and_action = np.concatenate([encoded_obs, expanded_action], axis=1)
         self.h, self.c = self.rnn.predict([np.expand_dims(obs_and_action, axis=0), self.h, self.c])
         return np.concatenate([encoded_obs, self.h], axis=1)
 
     def build_actor(self):
-        state_input = Input(shape=[LSTM_DIM+LATENT_DIM], name='state_input')
+        state_input = Input(shape=(LATENT_DIM,), name='state_input')
+        #state_input = Input(shape=[LSTM_DIM+LATENT_DIM], name='state_input')
         advantage = Input(shape=(1,), name='advantage_input')
         old_prediction = Input(shape=(NUM_ACTIONS,), name='old_prediction_input')
 
@@ -127,7 +129,8 @@ class Agent:
         return model
 
     def build_critic(self):
-        state_input = Input(shape=(LSTM_DIM + LATENT_DIM,), name='state_input')
+        state_input = Input(shape=(LATENT_DIM,), name='state_input')
+        #state_input = Input(shape=(LSTM_DIM + LATENT_DIM,), name='state_input')
         x = Dense(100, activation='relu')(state_input)
         out_value = Dense(1)(x)
 
