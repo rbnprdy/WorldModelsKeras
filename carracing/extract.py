@@ -2,83 +2,91 @@
 https://github.com/hardmaru/WorldModelsExperiments/blob/master/carracing/extract.py
 
 Usage:
-    python extract.py OUTPUT_DIR --max_frames MAX_FRAMES --max_trials MAX_TRIALS
+    python extract.py OUTPUT_DIR --num_frames NUM_FRAMES --num_trials NUM_TRIALS
 """
 
 import os
 import argparse
 import random
-import time
 
 import gym
 import numpy as np
-import h5py
 
 from env import make_env
 
+def generate_data_action(t, current_action):
+    """A bit of a hack to generate better input data taken from
+    https://github.com/AppliedDataSciencePartners/WorldModels/blob/master/config.py
+    This will go straight for the first 60 time steps, then only either
+    accelerate, decelearte, or turn"""
+    if t < 60:
+        return np.array([0,1,0])
+    
+    if t % 5 > 0:
+        return current_action
+
+    rn = random.randint(0,9)
+    if rn in [0]:
+        return np.array([0,0,0])
+    if rn in [1,2,3,4]:
+        return np.array([0,random.random(),0])
+    if rn in [5,6,7]:
+        return np.array([-random.random(),0,0])
+    if rn in [8]:
+        return np.array([random.random(),0,0])
+    if rn in [9]:
+        return np.array([0,0,random.random()])
+
 def main(args):
-    output_file = args.output_file
-    max_frames = args.max_frames
-    max_trials = args.max_trials
+    output_dir = args.output_dir
+    num_frames = args.num_frames
+    num_trials = args.num_trials
 
-    if not os.path.exists(os.path.split(output_file)[0]):
-        os.makedirs(os.path.split(output_file)[0])
-
-    f = h5py.File(output_file, 'w')
-    dset_obs = f.create_dataset('obs', shape=(max_trials*max_frames, 64, 64, 3))
-    dset_action = f.create_dataset('action', shape=(max_trials*max_frames, 3))
+    if not os.path.exists(output_dir): os.makedirs(output_dir)
+    if output_dir.endswith('/'): output_dir = output_dir[:-1]
 
     env = make_env('carracing', full_episode=True)
-    total_frames = 0
-    for trial in range(max_trials):
-        try:
-            start = time.time()
-            random_generated_int = random.randint(0, 2**31-1)
-            recording_obs = []
-            recording_action = []
 
-            np.random.seed(random_generated_int)
-            env.seed(random_generated_int)
+    # Generate `num_trials` trials
+    for trial in range(num_trials):
+        random_generated_int = random.randint(0, 2**31-1)
+        filename = output_dir + "/" + str(random_generated_int) + ".npz"
+        recording_obs = []
+        recording_action = []
 
-            obs = env.reset()
+        np.random.seed(random_generated_int)
+        env.seed(random_generated_int)
+        
+        # Intial observation and action
+        obs = env.reset()
+        action = env.action_space.sample()
 
-            for frame in range(max_frames):
-                env.render("rgb_array")
-                recording_obs.append(obs)
-                action = env.action_space.sample()
-                recording_action.append(action)
+        # Generate `num_frames` frames per trial
+        for frame in range(num_frames):
+            
+            recording_obs.append(obs)
 
-                obs, reward, done, info = env.step(action)
+            action = generate_data_action(frame, action)
+            recording_action.append(action)
 
-                # FIXME: Other code assumes that `done` is never reached
-                if done:
-                    break
+            # We're not using done because the agent should never finish
+            # so that each trial has the same amount of frames. This is a
+            # pretty reasonable assumption because we're acting randomly.
+            obs, reward, _, _ = env.step(action)
 
-            total_frames += (frame+1)
-            print("dead at", frame+1, "total recorded frames for this worker", total_frames)
-            recording_obs = np.array(recording_obs, dtype=np.uint8)
-            recording_action = np.array(recording_action, dtype=np.float16)
-            dset_obs[trial*max_frames:(1+trial)*max_frames] = recording_obs
-            dset_action[trial*max_frames:(1+trial)*max_frames] = recording_action
-            print(time.time() - start)
-        except gym.error.Error:
-            # FIXME: This was never happening to me...could probably just
-            # delete and only generate 10000 trials
-            print("stupid gym error, life goes on")
-            env.close()
-            env = make_env(render_mode=render_mode)
-            continue
+        recording_obs = np.array(recording_obs, dtype=np.uint8)
+        recording_action = np.array(recording_action, dtype=np.float16)
+        np.savez_compressed(filename, obs=recording_obs, action=recording_action)
 
     env.close()
-    f.close()
 
 if __name__=='__main__':
     parser = argparse.ArgumentParser(
             description='Generate training data for the vae model.')
-    parser.add_argument('--output_file', '-o', default='data/train.h5',
+    parser.add_argument('output_dir',
                         help='The directory to place the output data in.')
-    parser.add_argument('--max_frames', type=int, default=1000,
-                        help='The max frames for one episode.')
-    parser.add_argument('--max_trials', type=int, default=200,
-                        help='The max number of trials to run.')
+    parser.add_argument('--num_frames', type=int, default=1000,
+                        help='The number of frames for one episode.')
+    parser.add_argument('--num_trials', type=int, default=200,
+                        help='The number of trials to run.')
     main(parser.parse_args())
