@@ -22,7 +22,7 @@ class CarRacingWrapper(CarRacing):
   def __init__(self, full_episode=False):
     super(CarRacingWrapper, self).__init__()
     self.full_episode = full_episode
-    self.observation_space = Box(low=0, high=255, shape=(SCREEN_X, SCREEN_Y, 3), dtype=np.uint8) # , dtype=np.uint8
+    self.observation_space = Box(low=0, high=255, shape=(SCREEN_X, SCREEN_Y, 3), dtype=np.uint8)
 
   def step(self, action):
     obs, reward, done, _ = super(CarRacingWrapper, self).step(action)

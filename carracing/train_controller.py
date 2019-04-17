@@ -43,7 +43,7 @@ def main(args):
                     outputs=vae.get_layer('encoder').output)
 
     rewrad_dim = 3
-    rnn_train, rnn = get_rnn((None, latent_dim + rewrad_dim), train=False)
+    rnn_train, rnn = get_rnn((None, latent_dim + rewrad_dim))
     rnn_train.load_weights('checkpoints/rnn.h5')
 
     lstm_dim = 256

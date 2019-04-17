@@ -35,8 +35,7 @@ def pdf(y, pis, mus, sigmas):
 def get_rnn(input_shape,
             lstm_dim=256,
             output_sequence_width=32,
-            num_mixtures=5,
-            train=True):
+            num_mixtures=5):
     inputs = Input(shape=input_shape, name='rnn_input')
     lstm = LSTM(lstm_dim,
                 return_sequences=True,
