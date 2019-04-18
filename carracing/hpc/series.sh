@@ -3,7 +3,7 @@
 #PBS -l select=1:ncpus=28:mem=168gb:pcmem=6gb:ngpus=1
 
 ### Specify a name for the job
-#PBS -N wm_gen_data
+#PBS -N wm_series
 
 ### Specify the group name
 #PBS -W group_list=akoglu
@@ -29,5 +29,5 @@ module load singularity
 cd /extra/rubenpurdy/WorldModelsKeras/carracing
 
 date
-./extract.bash
+singularity exec --nv /extra/rubenpurdy/images/gym.simg python series.py
 date
