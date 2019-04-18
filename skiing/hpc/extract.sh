@@ -26,7 +26,7 @@
 
 module load singularity
 
-cd /extra/rubenpurdy/WorldModelsKeras/carracing
+cd /extra/rubenpurdy/WorldModelsKeras/skiing
 
 date
 ./extract.bash
