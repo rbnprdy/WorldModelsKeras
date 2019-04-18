@@ -9,11 +9,11 @@ from models.vae import get_vae
 
 
 def create_dataset(data_dir, filelist, N=10000, M=1000):
-  data = np.zeros((M*N, 64, 64, 3))
+  data = np.zeros((M*N, 64, 64, 3), dtype=np.uint8)
   idx = 0
   for i in range(N):
     filename = filelist[i]
-    raw_data = np.load(os.path.join(data_dir, filename))['obs'] / 255.0
+    raw_data = np.load(os.path.join(data_dir, filename))['obs']
     l = len(raw_data)
     if (idx+l) > (M*N):
       data = data[0:idx]
@@ -41,7 +41,7 @@ def main(args):
     dataset = create_dataset(data_dir, filelist, N=num_episodes, M=num_frames)
 
     data_shape = (64, 64, 3)
-    vae = get_vae(data_shape, 32)
+    vae = get_vae(data_shape, 32, scale_input=True)
 
     checkpoint = ModelCheckpoint(checkpoint_path, monitor='train_loss')
 
