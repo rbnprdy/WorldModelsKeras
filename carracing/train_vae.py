@@ -31,7 +31,6 @@ def main(args):
     epochs = args.epochs
     batch_size = args.batch_size
     checkpoint_path = args.checkpoint_path
-    train_size = args.train_size
     num_episodes = args.num_episodes
     num_frames = args.num_frames
 

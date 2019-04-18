@@ -13,10 +13,14 @@
 
 ### CPUtime required in hhh:mm:ss.
 ### Leading 0's can be omitted e.g 48:0:0 sets 48 hours
-#PBS -l cput=23:20:00
+#PBS -l cput=280:00:00
 
 ### Walltime is how long your job will run
-#PBS -l walltime=00:50:00
+#PBS -l walltime=10:00:00
+
+### Email me at beginning, end, and abnormal end
+#PBS -m bea
+#PBS -M rubenpurdy@email.arizona.edu
 
 ### EXPERIMENTS
 
@@ -25,5 +29,5 @@ module load singularity
 cd /extra/rubenpurdy/WorldModelsKeras/carracing
 
 date
-singularity exec /extra/rubenpurdy/images/gym.simg python extract.py data/ --num_trials 4 --num_frames 100
+./extract.bash
 date

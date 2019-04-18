@@ -1,68 +1,74 @@
-"""Uses a pretrained VAE to generate seires data to train an RNN"""
+"""Uses the trained VAE to generate seires data to train the RNN"""
 import argparse
 import os
 import shutil
 
 from models.vae import get_vae
-from tensorflow.keras.utils import HDF5Matrix
 from tensorflow.keras.models import Model
-import h5py
 import numpy as np
 
 
-def scale(a):
-    return a / 255
+def load_raw_data_list(data_dir, filelist):
+    data_list = []
+    action_list = []
+    counter = 0
+    for i in range(len(filelist)):
+        filename = filelist[i]
+        raw_data = np.load(os.path.join(data_dir, filename))
+        data_list.append(raw_data['obs'])
+        action_list.append(raw_data['action'])
+        if ((i+1) % 1000 == 0):
+            print("loading file", (i+1))
+    return data_list, action_list
 
 
 def main(args):
-    data_path = args.data_path
+    data_dir = args.data_dir
     checkpoint_path = args.checkpoint_path
-    output_path = args.output_path
     total_num = args.total_num
     batch_size = args.batch_size
 
     data_shape = (64, 64, 3)
     latent_dim = 32
     action_dim = 3
+
     vae = get_vae(data_shape, latent_dim)
     vae.load_weights(checkpoint_path)
     encoder = Model(inputs=vae.input,
                     outputs=vae.get_layer('encoder').output)
 
-    if not os.path.exists(os.path.split(output_path)[0]):
-        os.makedirs(os.path.split(output_path)[0])
+    filelist = os.listdir(data_dir)
+    filelist.sort()
+    filelist = filelist[0:total_num]
 
-    with h5py.File(output_path, 'a') as output_file:
-        x = HDF5Matrix(data_path, 'obs', normalizer=scale)
-        action_in = HDF5Matrix(data_path, 'action')
-        if total_num == 0: total_num = len(x)
-        print('Generating', total_num, 'data points.')
+    dataset, action_dataset = load_raw_data_list(data_dir, filelist)
 
-        zs = output_file.create_dataset('z',
-                                        shape=(total_num // batch_size,
-                                               batch_size,
-                                               latent_dim),
-                                        dtype=np.float32)
+    mu_dataset = []
+    sigma_dataset = []
+    z_dataset = []
+    for i in range(len(dataset)):
+        data_batch = dataset[i]
+        mu, sigma, z = encoder.predict(data_batch)
+        mu_dataset.append(mu)
+        sigma_dataset.append(sigma)
+        z_dataset.append(z)
 
-        # FIXME: I should have just saved everything as a series
-        # in the first place
-        action_out = output_file.create_dataset('action',
-                                                shape=(total_num // batch_size,
-                                                       batch_size,
-                                                       action_dim),
-                                                dtype=np.float16)
+    action_dataset = np.array(action_dataset)
+    mu_dataset = np.array(mu_dataset)
+    sigma_dataset = np.array(sigma_dataset)
+    z_dataset = np.array(z_dataset)
 
-        for i in range(total_num // batch_size):
-            print(i, '/', total_num // batch_size, end='\r')
-            zs[i] = encoder.predict(x[i*batch_size:(i+1)*batch_size])[-1]
-            action_out[i] = action_in[i*batch_size:(i+1)*batch_size]
+    np.savez_compressed(os.path.join(data_dir, "series.npz"),
+                        action=action_dataset,
+                        mu=mu_dataset,
+                        sigma=sigma_dataset,
+                        z=z_dataset)
 
 
 if __name__=='__main__':
     parser = argparse.ArgumentParser(description='Generate rnn trianing data.')
-    parser.add_argument('--data_path', '-d', default='data/train.h5')
+    parser.add_argument('--data_dir', '-d', default='data/')
     parser.add_argument('--checkpoint_path', '-c', default='checkpoints/vae.h5')
-    parser.add_argument('--output_path', default='data/series.h5')
-    parser.add_argument('--total_num', '-t', type=int, default=0)
+    parser.add_argument('--total_num', '-t', type=int, default=10000)
     parser.add_argument('--batch_size', '-b', type=int, default=1000)
     main(parser.parse_args())
