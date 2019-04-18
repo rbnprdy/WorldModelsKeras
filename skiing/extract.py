@@ -38,22 +38,21 @@ def main(args):
         
         # Intial observation and action
         obs = env.reset()
-        action = env.action_space.sample()
 
         # Generate `num_frames` frames per trial
         for frame in range(num_frames):
             
             recording_obs.append(obs)
-            print(obs.shape)
             
-
             action = env.action_space.sample()
             recording_action.append(action)
 
-            # We're not using done because the agent should never finish
-            # so that each trial has the same amount of frames. This is a
-            # pretty reasonable assumption because we're acting randomly.
-            obs, reward, _, _ = env.step(action)
+            # We shouldn't finish in a thousand frames, but if we do,
+            # we need to start over so that all testing arrays are same size
+            obs, reward, done, _ = env.step(action)
+            if done:
+                print('[WARNING] Environment finished early in seed', random_generated_int)
+                obs = env.reset()
 
         recording_obs = np.array(recording_obs, dtype=np.uint8)
         recording_action = np.array(recording_action, dtype=np.uint8)
