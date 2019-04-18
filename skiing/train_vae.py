@@ -70,7 +70,7 @@ if __name__=='__main__':
                                                 help='The batch size to use for training.')
         parser.add_argument('--checkpoint_path', default='checkpoints/vae.h5',
                                                 help='The path to save the checkpoint at.')
-        parser.add_argument('--num_episodes', type=int, default=5000,
+        parser.add_argument('--num_episodes', type=int, default=3000,
                                                 help='The number of episodes to use for training.')
         parser.add_argument('--num_frames', type=int, default=1000,
                                                 help='The number of frames per episode.')
