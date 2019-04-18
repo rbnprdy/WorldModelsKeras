@@ -47,10 +47,10 @@ def main(args):
 
         vae.compile(optimizer='adam')
         vae.fit(dataset,
-                        epochs=epochs,
-                        batch_size=batch_size,
-                        shuffle=True,
-                        callbacks=[checkpoint])
+                epochs=epochs,
+                batch_size=batch_size,
+                shuffle=True,
+                callbacks=[checkpoint])
 
 
 if __name__=='__main__':
