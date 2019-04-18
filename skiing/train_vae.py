@@ -40,8 +40,14 @@ def main(args):
 
         dataset = create_dataset(data_dir, filelist, N=num_episodes, M=num_frames)
 
-        data_shape = (64, 64, 3)
-        vae = get_vae(data_shape, 32, scale_input=True)
+        data_shape = (144, 144, 3)
+        vae = get_vae(data_shape, 32, scale_input=True,
+                      filters=[16, 32, 64, 128, 256],
+                      kernels=[4, 4, 4, 4, 4],
+                      strides=[2, 2, 2, 2, 2],
+                      deconv_filters=[256, 128, 64, 32, 16, 3],
+                      deconv_kernels=[2, 5, 4, 4, 5, 4],
+                      deconv_strides=[2, 2, 2, 2, 2, 2])
 
         checkpoint = ModelCheckpoint(checkpoint_path, monitor='train_loss')
 
@@ -57,7 +63,7 @@ if __name__=='__main__':
         parser = argparse.ArgumentParser(description='Train the vae.')
         parser.add_argument('--data_dir', '-d', default='data/',
                                                 help=('The path to the folder containing the training'
-                                                         'data.'))
+                                                      ' data.'))
         parser.add_argument('--epochs', '-e', type=int, default=10,
                                                 help='The number of epochs to train for.')
         parser.add_argument('--batch_size', '-b', type=int, default=128,
