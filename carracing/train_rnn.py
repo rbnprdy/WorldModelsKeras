@@ -1,22 +1,22 @@
-"""Trains the rnn on data created using `extract.py`."""
+"""Trains the rnn on data created using `series.py`."""
 import argparse
+import os
 
-from models.rnn import get_rnn
 from tensorflow.keras.callbacks import ModelCheckpoint
 import numpy as np
-import h5py
+
+from models.rnn import get_rnn
+
 
 def main(args):
-    data_path = args.data_path
+    data_dir = args.data_dir
     epochs = args.epochs
     batch_size = args.batch_size
     checkpoint_path = args.checkpoint_path
-    end = args.data_length
-    sequence_length = args.sequence_length
 
-    f = h5py.File(data_path, 'r')
-    zs = f['z'][:]
-    actions = f['action'][:]
+    raw_data = np.load(os.path.join(data_dir, 'series.npz'))
+    zs = raw_data['z']
+    actions = raw_data['action']
 
     # Combine encoder output and action
     x_train = np.concatenate([zs, actions], axis=-1)
@@ -30,22 +30,18 @@ def main(args):
     rnn.fit(x_train, y_train,
 	    epochs=epochs,
 	    batch_size=batch_size,
-	    shuffle='batch',
-            callbacks=[checkpoint])
+	    shuffle=True,
+        callbacks=[checkpoint])
 
 
 if __name__=='__main__':
     parser = argparse.ArgumentParser(description='Train the rnn.')
-    parser.add_argument('--data_path', '-d', default='data/series.h5',
-			help='The path to the training data.')
+    parser.add_argument('--data_dir', '-d', default='data/',
+			help='The path to the training data directory.')
     parser.add_argument('--epochs', '-e', type=int, default=40,
 			help='The number of epochs to train for.')
     parser.add_argument('--batch_size', '-b', type=int, default=128,
 			help='The batch size to use for training.')
-    parser.add_argument('--data_length', '-l', type=int, default=10000,
-                        help='The length of input data to use.')
     parser.add_argument('--checkpoint_path', default='checkpoints/rnn.h5',
 			help='The path to save the checkpoint at.')
-    parser.add_argument('--sequence_length', type=int, default=1000,
-                        help='The sequence length to train the rnn on.')
     main(parser.parse_args())

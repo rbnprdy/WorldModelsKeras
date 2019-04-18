@@ -3,9 +3,9 @@ import argparse
 import os
 
 import numpy as np
+from tensorflow.keras.callbacks import ModelCheckpoint
 
 from models.vae import get_vae
-from tensorflow.keras.callbacks import ModelCheckpoint
 
 
 def create_dataset(data_dir, filelist, N=10000, M=1000):

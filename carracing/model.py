@@ -1,7 +1,5 @@
 #python model.py car_racing --filename ./controller/car_racing.cma.4.32.best.json --render_mode --record_video
 #xvfb-run -a -s "-screen 0 1400x900x24" python model.py car_racing --filename ./controller/car_racing.cma.4.32.best.json --render_mode --record_video
-
-
 import numpy as np
 import random
 import json
