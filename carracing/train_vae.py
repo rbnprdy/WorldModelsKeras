@@ -9,7 +9,7 @@ from models.vae import get_vae
 
 
 def create_dataset(data_dir, filelist, N=10000, M=1000):
-  data = np.zeros((M*N, 64, 64, 3), dtype=np.uint8)
+  data = np.zeros((M*N, 64, 64, 3))
   idx = 0
   for i in range(N):
     filename = filelist[i]
