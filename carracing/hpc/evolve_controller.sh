@@ -3,7 +3,7 @@
 #PBS -l select=1:ncpus=28:mem=168gb:pcmem=6gb:ngpus=1
 
 ### Specify a name for the job
-#PBS -N wm_train_vae
+#PBS -N wm_evolve
 
 ### Specify the group name
 #PBS -W group_list=akoglu
@@ -29,5 +29,5 @@ module load singularity
 cd /extra/rubenpurdy/WorldModelsKeras/carracing
 
 date
-singularity exec --nv /extra/rubenpurdy/images/gym.simg python train_vae.py
+singularity exec --nv /extra/rubenpurdy/images/gym.simg xvfb-run -a -s "-screen 0 1400x900x24 +extension RANDR" -- python evolve_controller.py --num_worker 28 --num_worker_trial 2 --num_episode 4
 date
