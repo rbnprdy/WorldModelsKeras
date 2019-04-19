@@ -38,7 +38,7 @@ def generate_data(data_dir, batch_size, num_episodes, num_frames):
                 shuffle(filelist)
             curr_file = np.load(os.path.join(data_dir, filelist[file_num]))
 
-        yield (batch)
+        yield (batch,)
 
 
 def main(args):
