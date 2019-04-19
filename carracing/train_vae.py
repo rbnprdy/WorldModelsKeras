@@ -51,7 +51,7 @@ def main(args):
         num_frames = args.num_frames
 
         data_shape = (64, 64, 3)
-        vae = get_vae(data_shape, 32, scale_input=True)
+        vae = get_vae(data_shape, 32)
 
         checkpoint = ModelCheckpoint(checkpoint_path, monitor='train_loss')
 

@@ -22,7 +22,6 @@ def sampling(args):
 
 
 def get_vae(input_shape, latent_dim,
-            scale_input=False,
             filters=[32, 64, 128, 256],
             kernels=[4, 4, 4, 4],
             strides=[2, 2, 2, 2],
@@ -31,10 +30,6 @@ def get_vae(input_shape, latent_dim,
             deconv_strides=[2, 2, 2, 2]):
 
     inputs = Input(shape=input_shape, name='encoder_input')
-    if scale_input:
-        x = Lambda(lambda x : x / 255.)(inputs)
-    else:
-        x = inputs
     x = inputs
     for f, k, s in zip(filters, kernels, strides):
         x = Conv2D(filters=f,

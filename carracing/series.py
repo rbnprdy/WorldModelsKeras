@@ -33,7 +33,7 @@ def main(args):
     for filename in filelist:
         raw_data = np.load(os.path.join(data_dir, filename))
         action_dataset.append(raw_data['action'])
-        mu, sigma, z = encoder.predict(raw_data['obs'])
+        mu, sigma, z = encoder.predict(raw_data['obs'].astype(np.float) / 255.)
         mu_dataset.append(mu)
         sigma_dataset.append(sigma)
         z_dataset.append(z)

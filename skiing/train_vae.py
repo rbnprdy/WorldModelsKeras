@@ -55,7 +55,7 @@ def main(args):
     num_frames = args.num_frames
 
     data_shape = (144, 144, 3)
-    vae = get_vae(data_shape, 32, scale_input=True,
+    vae = get_vae(data_shape, 32,
                   filters=[16, 32, 64, 128, 256],
                   kernels=[4, 4, 4, 4, 4],
                   strides=[2, 2, 2, 2, 2],

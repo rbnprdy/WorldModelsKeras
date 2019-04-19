@@ -17,7 +17,13 @@ def main(args):
     latent_dim = 32
     action_dim = 3
 
-    vae = get_vae(data_shape, latent_dim)
+    vae = get_vae(data_shape, latent_dim,
+                  filters=[16, 32, 64, 128, 256],
+                  kernels=[4, 4, 4, 4, 4],
+                  strides=[2, 2, 2, 2, 2],
+                  deconv_filters=[256, 128, 64, 32, 16, 3],
+                  deconv_kernels=[2, 5, 4, 4, 5, 4],
+                  deconv_strides=[2, 2, 2, 2, 2, 2])
     vae.load_weights(checkpoint_path)
     encoder = Model(inputs=vae.input,
                     outputs=vae.get_layer('encoder').output)
@@ -33,7 +39,7 @@ def main(args):
     for filename in filelist:
         raw_data = np.load(os.path.join(data_dir, filename))
         action_dataset.append(raw_data['action'])
-        mu, sigma, z = encoder.predict(raw_data['obs'])
+        mu, sigma, z = encoder.predict(raw_data['obs'].astype(np.float) / 255.)
         mu_dataset.append(mu)
         sigma_dataset.append(sigma)
         z_dataset.append(z)

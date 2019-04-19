@@ -25,7 +25,7 @@ RENDER_DELAY = False
 record_video = False
 MEAN_MODE = False
 
-INPUT_DIM = (64, 64, 3)
+INPUT_DIM = (144, 144, 3)
 RNN_HIDDEN_UNITS = 256
 Z_DIM = 32
 NUM_ACTIONS = 3
@@ -37,10 +37,16 @@ def make_model():
     session = tf.Session(config=config)
     K.set_session(session)
 
-    vae = get_vae(INPUT_DIM, Z_DIM)
+    vae = get_vae(INPUT_DIM, Z_DIM,
+                  filters=[16, 32, 64, 128, 256],
+                  kernels=[4, 4, 4, 4, 4],
+                  strides=[2, 2, 2, 2, 2],
+                  deconv_filters=[256, 128, 64, 32, 16, 3],
+                  deconv_kernels=[2, 5, 4, 4, 5, 4],
+                  deconv_strides=[2, 2, 2, 2, 2, 2])
     vae.load_weights('checkpoints/vae.h5')
     encoder = KerasModel(inputs=vae.input,
-                                             outputs=vae.get_layer('encoder').output)
+                         outputs=vae.get_layer('encoder').output)
 
     rnn_train, rnn = get_rnn((None, Z_DIM + NUM_ACTIONS))
     rnn_train.load_weights('checkpoints/rnn.h5')
