@@ -41,7 +41,7 @@ def main(args):
 
         # Generate `num_frames` frames per trial
         for frame in range(num_frames):
-            
+            env.render("rgb_array")
             recording_obs.append(obs)
             
             action = env.action_space.sample()

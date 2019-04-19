@@ -9,13 +9,13 @@ from tensorflow.keras.callbacks import ModelCheckpoint
 from models.vae import get_vae
 
 
-def generate_data(data_dir, batch_size, num_episodes, num_frames):
+def generate_data(data_dir, batch_size, num_episodes, num_frames, offset=0):
     assert num_frames % batch_size == 0, \
            'num_frames must be divisible by batch_size because I am lazy'
     
     filelist = os.listdir(data_dir)
     filelist.sort()
-    filelist = filelist[0:num_episodes]
+    filelist = filelist[offset:offset+num_episodes]
     shuffle(filelist)
     
     file_num = 0
@@ -48,12 +48,13 @@ def main(args):
         batch_size = args.batch_size
         checkpoint_path = args.checkpoint_path
         num_episodes = args.num_episodes
+        val_episodes = args.val_episodes
         num_frames = args.num_frames
 
         data_shape = (64, 64, 3)
         vae = get_vae(data_shape, 32)
 
-        checkpoint = ModelCheckpoint(checkpoint_path, monitor='train_loss')
+        checkpoint = ModelCheckpoint(checkpoint_path, monitor='val_loss')
 
         vae.compile(optimizer='adam')
         vae.fit_generator(generate_data(data_dir,
@@ -63,6 +64,12 @@ def main(args):
                           steps_per_epoch=(num_episodes * num_frames / batch_size),
                           epochs=epochs,
                           workers=28,
+                          validation_data=generate_data(data_dir,
+                                                        batch_size,
+                                                        val_episodes,
+                                                        num_frames,
+                                                        offset=num_episodes),
+                          validation_steps=(val_episodes * num_frames / batch_size),
                           callbacks=[checkpoint])
 
 
@@ -79,6 +86,8 @@ if __name__=='__main__':
                             help='The path to save the checkpoint at.')
         parser.add_argument('--num_episodes', type=int, default=10000,
                             help='The number of episodes to use for training.')
+        parser.add_argument('--val_episodes', type=int, default=1000,
+                            help='The number of episodes to use for validation.')
         parser.add_argument('--num_frames', type=int, default=1000,
                             help='The number of frames per episode.')
         main(parser.parse_args())
