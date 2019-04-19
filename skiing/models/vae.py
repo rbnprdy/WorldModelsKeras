@@ -73,8 +73,8 @@ def get_vae(input_shape, latent_dim,
     outputs = decoder(encoder(inputs)[2])
     vae = Model(inputs, outputs, name='vae')
 
-    # reconstruction_loss = binary_crossentropy(K.flatten(inputs), K.flatten(outputs))
-    # reconstruction_loss *= input_shape[0]*input_shape[1]
+    reconstruction_loss = binary_crossentropy(K.flatten(inputs), K.flatten(outputs))
+    reconstruction_loss *= input_shape[0]*input_shape[1]
 
     # if optimizer:
 
