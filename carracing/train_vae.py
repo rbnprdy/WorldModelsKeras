@@ -73,7 +73,7 @@ if __name__=='__main__':
                                   ' data.'))
         parser.add_argument('--epochs', '-e', type=int, default=10,
                             help='The number of epochs to train for.')
-        parser.add_argument('--batch_size', '-b', type=int, default=128,
+        parser.add_argument('--batch_size', '-b', type=int, default=100,
                             help='The batch size to use for training.')
         parser.add_argument('--checkpoint_path', default='checkpoints/vae.h5',
                             help='The path to save the checkpoint at.')
