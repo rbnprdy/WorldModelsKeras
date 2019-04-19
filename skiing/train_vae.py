@@ -5,11 +5,17 @@ from random import shuffle
 
 import numpy as np
 from tensorflow.keras.callbacks import ModelCheckpoint
+import tensorflow.keras.backend as K
 
 from models.vae import get_vae
 
 
 IMAGE_SIZE = (144, 144, 3)
+
+
+def reconstruction_loss(y_true, y_pred):
+    reconstruction_loss = binary_crossentropy(K.flatten(y_true), K.flatten(y_pred))
+    reconstruction_loss *= 144*144
 
 
 def generate_data(data_dir, batch_size, num_episodes, num_frames):
@@ -38,7 +44,7 @@ def generate_data(data_dir, batch_size, num_episodes, num_frames):
                 shuffle(filelist)
             curr_file = np.load(os.path.join(data_dir, filelist[file_num]))
 
-        yield (batch, [])
+        yield (batch, batch)
 
 
 def main(args):
@@ -56,11 +62,12 @@ def main(args):
                   strides=[2, 2, 2, 2, 2],
                   deconv_filters=[256, 128, 64, 32, 16, 3],
                   deconv_kernels=[2, 5, 4, 4, 5, 4],
-                  deconv_strides=[2, 2, 2, 2, 2, 2])
+                  deconv_strides=[2, 2, 2, 2, 2, 2],
+                  optimizer='adam')
 
     checkpoint = ModelCheckpoint(checkpoint_path, monitor='train_loss')
 
-    vae.compile(optimizer='adam')
+    # vae.compile(optimizer='adam')
     vae.fit_generator(generate_data(data_dir,
                                     batch_size,
                                     num_episodes,
