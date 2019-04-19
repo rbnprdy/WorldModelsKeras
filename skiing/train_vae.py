@@ -13,11 +13,6 @@ from models.vae import get_vae
 IMAGE_SIZE = (144, 144, 3)
 
 
-def reconstruction_loss(y_true, y_pred):
-    reconstruction_loss = binary_crossentropy(K.flatten(y_true), K.flatten(y_pred))
-    reconstruction_loss *= 144*144
-
-
 def generate_data(data_dir, batch_size, num_episodes, num_frames):
     assert num_frames % batch_size == 0, \
            'num_frames must be divisible by batch_size because I am lazy'
@@ -30,7 +25,9 @@ def generate_data(data_dir, batch_size, num_episodes, num_frames):
     file_num = 0
     image_num = 0    
     
-    curr_file = np.load(os.path.join(data_dir, filelist[file_num]))['obs'].astype(np.float) / 255.
+    curr_file = np.load(
+        os.path.join(data_dir, filelist[file_num])
+    )['obs'].astype(np.float) / 255.
     while True:
         batch = curr_file[image_num:image_num+batch_size]
         np.random.shuffle(batch)
@@ -42,9 +39,11 @@ def generate_data(data_dir, batch_size, num_episodes, num_frames):
             if file_num == len(filelist):
                 file_num = 0
                 shuffle(filelist)
-            curr_file = np.load(os.path.join(data_dir, filelist[file_num]))
+            curr_file = np.load(
+                os.path.join(data_dir, filelist[file_num])
+            )['obs'].astype(np.float) / 255.
 
-        yield (batch, batch)
+        yield (batch, None)
 
 
 def main(args):
@@ -67,7 +66,7 @@ def main(args):
 
     checkpoint = ModelCheckpoint(checkpoint_path, monitor='train_loss')
 
-    # vae.compile(optimizer='adam')
+    vae.compile(optimizer='adam')
     vae.fit_generator(generate_data(data_dir,
                                     batch_size,
                                     num_episodes,
