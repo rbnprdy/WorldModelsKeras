@@ -13,8 +13,8 @@ IMAGE_SIZE = (144, 144, 3)
 
 
 def generate_data(data_dir, batch_size, num_episodes, num_frames):
-    assert(num_frames % batch_size == 0,
-           'num_frames must be divisible by batch_size because I am lazy')
+    assert num_frames % batch_size == 0, \
+           'num_frames must be divisible by batch_size because I am lazy'
     
     filelist = os.listdir(data_dir)
     filelist.sort()
@@ -38,7 +38,7 @@ def generate_data(data_dir, batch_size, num_episodes, num_frames):
                 shuffle(filelist)
             curr_file = np.load(os.path.join(data_dir, filelist[file_num]))
 
-        yield (batch,)
+        yield (batch, [])
 
 
 def main(args):
@@ -68,7 +68,6 @@ def main(args):
                       steps_per_epoch=(num_episodes * num_frames / batch_size),
                       epochs=epochs,
                       workers=28,
-                      use_multiprocessing=True,
                       callbacks=[checkpoint])
 
 
