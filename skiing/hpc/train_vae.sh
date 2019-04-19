@@ -29,5 +29,5 @@ module load singularity
 cd /extra/rubenpurdy/WorldModelsKeras/skiing
 
 date
-singularity exec --nv /extra/rubenpurdy/images/gym.simg python train_vae.py --epochs 1
+singularity exec --nv /extra/rubenpurdy/images/gym.simg python train_vae.py --num_episodes 100 --epochs 1
 date
