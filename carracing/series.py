@@ -54,6 +54,6 @@ if __name__=='__main__':
     parser = argparse.ArgumentParser(description='Generate rnn trianing data.')
     parser.add_argument('--data_dir', '-d', default='data/')
     parser.add_argument('--checkpoint_path', '-c', default='checkpoints/vae.h5')
-    parser.add_argument('--total_num', '-t', type=int, default=10000)
+    parser.add_argument('--total_num', '-t', type=int, default=11000)
     parser.add_argument('--batch_size', '-b', type=int, default=1000)
     main(parser.parse_args())

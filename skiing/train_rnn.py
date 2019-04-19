@@ -25,13 +25,14 @@ def main(args):
     x_train = x_train[:,:-1]
     y_train = zs[:,1:]
 
-    checkpoint = ModelCheckpoint(checkpoint_path, monitor='train_loss')
+    checkpoint = ModelCheckpoint(checkpoint_path, monitor='val_loss')
     rnn, _ = get_rnn(x_train.shape[1:])
     rnn.compile(loss=rnn.loss, optimizer='adam')
     rnn.fit(x_train, y_train,
 	    epochs=epochs,
 	    batch_size=batch_size,
 	    shuffle=True,
+        validation_split=0.1,
         callbacks=[checkpoint])
 
 

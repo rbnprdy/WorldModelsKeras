@@ -97,7 +97,6 @@ def main(args):
 
     rand_gaussian = np.random.normal(size=(pitemp.shape[0], 32))*np.sqrt(temperature)
     next_z = chosen_mu+chosen_sigma*rand_gaussian
-    next_z.shape
 
     decoder = Model(inputs=vae.get_layer('decoder').input,
                     outputs=vae.get_layer('decoder').output)
