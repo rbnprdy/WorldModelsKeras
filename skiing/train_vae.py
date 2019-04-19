@@ -24,7 +24,7 @@ def generate_data(data_dir, batch_size, num_episodes, num_frames):
     file_num = 0
     image_num = 0    
     
-    curr_file = np.load(os.join(data_dir, filelist[file_num])).astype(np.float) / 255.
+    curr_file = np.load(os.path.join(data_dir, filelist[file_num])).astype(np.float) / 255.
     while True:
         batch = curr_file[image_num:image_num+batch_size]
         np.random.shuffle(batch)
@@ -36,7 +36,7 @@ def generate_data(data_dir, batch_size, num_episodes, num_frames):
             if file_num == len(filelist):
                 file_num = 0
                 shuffle(filelist)
-            curr_file = np.load(os.join(data_dir, filelist[file_num]))
+            curr_file = np.load(os.path.join(data_dir, filelist[file_num]))
 
         yield batch
 
