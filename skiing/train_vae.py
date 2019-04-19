@@ -61,8 +61,7 @@ def main(args):
                   strides=[2, 2, 2, 2, 2],
                   deconv_filters=[256, 128, 64, 32, 16, 3],
                   deconv_kernels=[2, 5, 4, 4, 5, 4],
-                  deconv_strides=[2, 2, 2, 2, 2, 2],
-                  optimizer='adam')
+                  deconv_strides=[2, 2, 2, 2, 2, 2])
 
     checkpoint = ModelCheckpoint(checkpoint_path, monitor='train_loss')
 
