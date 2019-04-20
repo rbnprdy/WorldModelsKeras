@@ -54,7 +54,7 @@ def main(args):
         data_shape = (64, 64, 3)
         vae = get_vae(data_shape, 32)
 
-        checkpoint = ModelCheckpoint(checkpoint_path, monitor='val_loss')
+        checkpoint = ModelCheckpoint(checkpoint_path, monitor='train_loss')
 
         vae.compile(optimizer='adam')
         vae.fit_generator(generate_data(data_dir,
@@ -64,12 +64,6 @@ def main(args):
                           steps_per_epoch=(num_episodes * num_frames / batch_size),
                           epochs=epochs,
                           workers=28,
-                          validation_data=generate_data(data_dir,
-                                                        batch_size,
-                                                        val_episodes,
-                                                        num_frames,
-                                                        offset=num_episodes),
-                          validation_steps=(val_episodes * num_frames / batch_size),
                           callbacks=[checkpoint])
 
 
