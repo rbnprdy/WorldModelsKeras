@@ -54,6 +54,7 @@ def main(args):
     num_episodes = args.num_episodes
     val_episodes = args.val_episodes
     num_frames = args.num_frames
+    load = args.load
 
     data_shape = (144, 144, 3)
     latent_dim = 64
@@ -65,7 +66,10 @@ def main(args):
                   deconv_kernels=[2, 5, 4, 4, 5, 4],
                   deconv_strides=[2, 2, 2, 2, 2, 2])
 
-    checkpoint = ModelCheckpoint(checkpoint_path, monitor='val_loss')
+    if load:
+        vae.load_weights(checkpoint_path)
+
+    checkpoint = ModelCheckpoint(checkpoint_path, monitor='train_loss')
 
     vae.compile(optimizer='adam')
     vae.fit_generator(generate_data(data_dir,
@@ -101,4 +105,7 @@ if __name__=='__main__':
                         help='The number of episodes to use for validation.')
     parser.add_argument('--num_frames', type=int, default=1000,
                         help='The number of frames per episode.')
+    parser.add_argument('--load', action='store_true',
+                        help=('Loads the network from the checkpoint path'
+                              'before beginning training.'))
     main(parser.parse_args())
