@@ -50,9 +50,13 @@ def main(args):
         num_episodes = args.num_episodes
         val_episodes = args.val_episodes
         num_frames = args.num_frames
+        load = args.load
 
         data_shape = (64, 64, 3)
         vae = get_vae(data_shape, 32)
+        
+        if load:
+            vae.load_weights(checkpoint_path)
 
         checkpoint = ModelCheckpoint(checkpoint_path, monitor='train_loss')
 
@@ -65,6 +69,8 @@ def main(args):
                           epochs=epochs,
                           workers=28,
                           callbacks=[checkpoint])
+
+        vae.save_weights('checkpoints/vae_final.h5')
 
 
 if __name__=='__main__':
@@ -84,4 +90,6 @@ if __name__=='__main__':
                             help='The number of episodes to use for validation.')
         parser.add_argument('--num_frames', type=int, default=1000,
                             help='The number of frames per episode.')
+        parser.add_argument('--load', action='store_true',
+                            help='Load weights from checkpoint before training.')
         main(parser.parse_args())

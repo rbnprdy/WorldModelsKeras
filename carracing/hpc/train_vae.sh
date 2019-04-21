@@ -29,5 +29,5 @@ module load singularity
 cd /extra/rubenpurdy/WorldModelsKeras/carracing
 
 date
-singularity exec --nv /extra/rubenpurdy/images/gym.simg python train_vae.py
+singularity exec --nv /extra/rubenpurdy/images/gym.simg python train_vae.py --load --epochs 5
 date
