@@ -66,7 +66,9 @@ def main(args):
             env.render("rgb_array")
             recording_obs.append(obs)
 
-            action = generate_data_action(frame, action)
+            # Is this the problem?
+            # action = generate_data_action(frame, action)
+            action = env.action_space.sample()
             recording_action.append(action)
 
             # We're not using done because the agent should never finish

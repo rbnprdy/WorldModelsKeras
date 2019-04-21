@@ -57,7 +57,7 @@ def main(args):
     load = args.load
 
     data_shape = (144, 144, 3)
-    latent_dim = 64
+    latent_dim = 128
     vae = get_vae(data_shape, latent_dim,
                   filters=[16, 32, 64, 128, 256],
                   kernels=[4, 4, 4, 4, 4],
@@ -86,6 +86,8 @@ def main(args):
                                                     offset=num_episodes),
                         validation_steps=(val_episodes * num_frames / batch_size),
                         callbacks=[checkpoint])
+
+    vae.save_weights('checkpoints/vae_final.h5')
 
 
 if __name__=='__main__':

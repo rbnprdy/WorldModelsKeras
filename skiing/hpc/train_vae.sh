@@ -13,10 +13,10 @@
 
 ### CPUtime required in hhh:mm:ss.
 ### Leading 0's can be omitted e.g 48:0:0 sets 48 hours
-#PBS -l cput=560:00:00
+#PBS -l cput=1120:00:00
 
 ### Walltime is how long your job will run
-#PBS -l walltime=20:00:00
+#PBS -l walltime=40:00:00
 
 ### Email me at beginning, end, and abnormal end
 #PBS -m bea
@@ -29,5 +29,5 @@ module load singularity
 cd /extra/rubenpurdy/WorldModelsKeras/skiing
 
 date
-singularity exec --nv /extra/rubenpurdy/images/gym.simg python train_vae.py --load --epochs 5
+singularity exec --nv /extra/rubenpurdy/images/gym.simg python train_vae.py
 date
