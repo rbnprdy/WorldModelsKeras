@@ -53,14 +53,13 @@ def main(args):
         load = args.load
 
         data_shape = (64, 64, 3)
-        vae = get_vae(data_shape, 32)
+        vae = get_vae(data_shape, 32, train=True)
         
         if load:
             vae.load_weights(checkpoint_path)
 
         checkpoint = ModelCheckpoint(checkpoint_path, monitor='train_loss')
 
-        vae.compile(optimizer='adam')
         vae.fit_generator(generate_data(data_dir,
                                         batch_size,
                                         num_episodes,
