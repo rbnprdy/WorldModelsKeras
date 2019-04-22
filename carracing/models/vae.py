@@ -27,7 +27,8 @@ def get_vae(input_shape, latent_dim,
             strides=[2, 2, 2, 2],
             deconv_filters=[128, 64, 32, 3],
             deconv_kernels=[5, 5, 6, 6],
-            deconv_strides=[2, 2, 2, 2]):
+            deconv_strides=[2, 2, 2, 2],
+            train=False):
 
     inputs = Input(shape=input_shape, name='encoder_input')
     x = inputs
@@ -67,12 +68,26 @@ def get_vae(input_shape, latent_dim,
     outputs = decoder(encoder(inputs)[2])
     vae = Model(inputs, outputs, name='vae')
 
-    reconstruction_loss = binary_crossentropy(K.flatten(inputs), K.flatten(outputs))
-    reconstruction_loss *= input_shape[0]*input_shape[1]
+    if train:
+        def reconstruction_loss(y_true, y_pred):
+            return 10 * K.mean(
+                K.square(K.flatten(y_true) - K.flatten(y_pred)), axis = -1)
 
-    kl_loss = 1 + K.log(sigma) - K.square(mu) - sigma
-    kl_loss = K.sum(kl_loss, axis=-1)
-    kl_loss *= -0.5
-    vae_loss = K.mean(reconstruction_loss + kl_loss)
-    vae.add_loss(vae_loss)
+        def kl_loss(y_true, y_pred):
+            return - 0.5 * K.mean(
+                1 + K.log(sigma) - K.square(mu) - sigma, axis = -1)
+        
+        def vae_loss(y_true, y_pred):
+            return reconstruction_loss(y_true, y_pred) + kl_loss(y_true, y_pred)
+        
+        vae.compile(optimizer='adam', loss=vae_loss, metrics=[reconstruction_loss, kl_loss])
+
+    # reconstruction_loss = binary_crossentropy(K.flatten(inputs), K.flatten(outputs))
+    # reconstruction_loss *= input_shape[0]*input_shape[1]
+
+    # kl_loss = 1 + K.log(sigma) - K.square(mu) - sigma
+    # kl_loss = K.sum(kl_loss, axis=-1)
+    # kl_loss *= -0.5
+    # vae_loss = K.mean(reconstruction_loss + kl_loss)
+    # vae.add_loss(vae_loss)
     return vae

@@ -39,7 +39,7 @@ def generate_data(data_dir, batch_size, num_episodes, num_frames, offset=0):
                 os.path.join(data_dir, filelist[file_num])
             )['obs'].astype(np.float) / 255.
 
-        yield (batch, None)
+        yield (batch, batch)
 
 
 def main(args):
