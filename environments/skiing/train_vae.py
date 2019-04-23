@@ -12,7 +12,7 @@ import config
 import sys
 sys.path.append('../../')
 from models.vae import get_vae
-from utils import generate_observation_data
+from data_utils import generate_observation_data
 
 
 def main(args):
