@@ -11,7 +11,7 @@ import config
 import sys
 sys.path.append('../../')
 from models.vae import get_vae
-from utils import generate_observation_data
+import utils 
 
 
 def main(args):
@@ -34,10 +34,10 @@ def main(args):
 
     checkpoint = ModelCheckpoint(checkpoint_path, monitor='train_loss')
 
-    vae.fit_generator(generate_observation_data(data_dir,
-                                                batch_size,
-                                                num_episodes,
-                                                num_frames),
+    vae.fit_generator(utils.generate_observation_data(data_dir,
+                                                      batch_size,
+                                                      num_episodes,
+                                                      num_frames),
                         steps_per_epoch=(num_episodes * num_frames / batch_size),
                         epochs=epochs,
                         workers=28,
