@@ -32,7 +32,8 @@ def pdf(y, pis, mus, sigmas):
 def get_rnn(input_shape,
             lstm_dim=256,
             output_sequence_width=32,
-            num_mixtures=5):
+            num_mixtures=5,
+            train=False):
     inputs = Input(shape=input_shape, name='rnn_input')
     lstm = LSTM(lstm_dim,
                 return_sequences=True,
@@ -57,31 +58,32 @@ def get_rnn(input_shape,
     outputs = Concatenate()([pis_flat, mus_flat, sigmas_flat])
     rnn = Model(inputs, outputs, name='mdn-rnn-training')
 
-    def rnn_loss(y_true, y_pred):
-        # Flattened output sequences and mixtures
-        flat = output_sequence_width*num_mixtures
-        # Get number of sequences
-        rollout = K.shape(y_pred)[1]
-        # Extract flattened variables
-        pis_flat = y_pred[:,:,:flat]
-        mus_flat = y_pred[:,:,flat:flat*2]
-        sigmas_flat = y_pred[:,:,flat*2:flat*3]
-        # Reshape to (batch, time, num_mixtures, output_sequence_width)
-        shape = [-1, rollout, num_mixtures, output_sequence_width]
-        pis = K.reshape(pis_flat, shape)
-        mus = K.reshape(mus_flat, shape)
-        sigmas = K.reshape(sigmas_flat, shape)
-        # Send pis through softmax
-        pis = K.exp(pis) / K.sum(K.exp(pis), axis=2, keepdims=True)
-        # Reshape y to be (batch, time, output_sequence_width)
-        y = K.reshape(y_true, [-1, rollout, output_sequence_width])
-        # Tile y to be (batch, time, num_mixtures*output_sequence_width)
-        y = tf.tile(y, (1, 1, num_mixtures))
-        # Reshape to (batch, time, num_mixtures, output_sequence_width)
-        y = K.reshape(y, [-1, rollout, num_mixtures, output_sequence_width])
-        # Pass through gaussian, then do mean of log loss.
-        return K.mean(-K.log(pdf(y, pis, mus, sigmas) + 1e-8), axis=(1,2))
+    if train:
+        def rnn_loss(y_true, y_pred):
+            # Flattened output sequences and mixtures
+            flat = output_sequence_width*num_mixtures
+            # Get number of sequences
+            rollout = K.shape(y_pred)[1]
+            # Extract flattened variables
+            pis_flat = y_pred[:,:,:flat]
+            mus_flat = y_pred[:,:,flat:flat*2]
+            sigmas_flat = y_pred[:,:,flat*2:flat*3]
+            # Reshape to (batch, time, num_mixtures, output_sequence_width)
+            shape = [-1, rollout, num_mixtures, output_sequence_width]
+            pis = K.reshape(pis_flat, shape)
+            mus = K.reshape(mus_flat, shape)
+            sigmas = K.reshape(sigmas_flat, shape)
+            # Send pis through softmax
+            pis = K.exp(pis) / K.sum(K.exp(pis), axis=2, keepdims=True)
+            # Reshape y to be (batch, time, output_sequence_width)
+            y = K.reshape(y_true, [-1, rollout, output_sequence_width])
+            # Tile y to be (batch, time, num_mixtures*output_sequence_width)
+            y = tf.tile(y, (1, 1, num_mixtures))
+            # Reshape to (batch, time, num_mixtures, output_sequence_width)
+            y = K.reshape(y, [-1, rollout, num_mixtures, output_sequence_width])
+            # Pass through gaussian, then do mean of log loss.
+            return K.mean(-K.log(pdf(y, pis, mus, sigmas) + 1e-8), axis=(1,2))
 
-    rnn.loss = rnn_loss
+        rnn.compile(optimizer='adam', loss=rnn_loss)
 
     return rnn, inference

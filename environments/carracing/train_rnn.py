@@ -37,9 +37,9 @@ def main(args):
     rnn, _ = get_rnn(x_train.shape[1:],
                      lstim_dim=lstm_dim,
                      output_sequence_width=latent_dim,
-                     num_mixtures=lstm_num_mixtures)
+                     num_mixtures=lstm_num_mixtures,
+                     train=True)
 
-    rnn.compile(loss=rnn.loss, optimizer='adam')
     rnn.fit(x_train, y_train,
             epochs=epochs,
             batch_size=batch_size,

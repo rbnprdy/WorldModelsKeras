@@ -34,14 +34,14 @@ def main(args):
                   strides=[2, 2, 2, 2, 2],
                   deconv_filters=[256, 128, 64, 32, 16, 3],
                   deconv_kernels=[2, 5, 4, 4, 5, 4],
-                  deconv_strides=[2, 2, 2, 2, 2, 2])
+                  deconv_strides=[2, 2, 2, 2, 2, 2],
+                  train=True)
 
     if load:
         vae.load_weights(checkpoint_path)
 
     checkpoint = ModelCheckpoint(checkpoint_path, monitor='train_loss')
 
-    vae.compile(optimizer='adam')
     vae.fit_generator(generate_observation_data(data_dir,
                                                 batch_size,
                                                 num_episodes,
