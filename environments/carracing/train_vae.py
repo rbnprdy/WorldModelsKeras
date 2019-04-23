@@ -24,7 +24,7 @@ def main(args):
     num_frames = args.num_frames
     load = args.load
 
-    data_shape = config.data_shape
+    data_shape = config.input_shape
     latent_dim = config.latent_dim
     
     vae = get_vae(data_shape, 32, train=True)
