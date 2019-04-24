@@ -18,7 +18,7 @@ def main(args):
     total_num = args.total_num
     batch_size = args.batch_size
 
-    data_shape = config.data_shape
+    data_shape = config.input_shape
     latent_dim = config.latent_dim
     action_dim = config.action_dim
 
