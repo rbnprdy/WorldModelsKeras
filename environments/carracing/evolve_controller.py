@@ -17,7 +17,7 @@ sys.path.append('../../')
 from es import CMAES, SimpleGA, OpenES, PEPG
 
 
-train_envs = ['car_racing']
+train_envs = ['carracing']
 
 ### ES related code - parameters are just dummy values so do not edit here. Instead, set in the args to the script.
 num_episode = 1
@@ -65,7 +65,7 @@ def initialize_settings(sigma_init=0.1, sigma_decay=0.9999, init_opt = ''):
     global population, filebase, controller_filebase, model, num_params, es, PRECISION, SOLUTION_PACKET_SIZE, RESULT_PACKET_SIZE
     population = num_worker * num_worker_trial
     filebase = './log/'+env_name+'.'+optimizer+'.'+str(num_episode)+'.'+str(population)
-    controller_filebase = './controller/'+env_name+'.'+optimizer+'.'+str(num_episode)+'.'+str(population)
+    controller_filebase = './checkpoints/controller/'+env_name+'.'+optimizer+'.'+str(num_episode)+'.'+str(population)
 
     model = make_model()
 
@@ -495,7 +495,7 @@ def mpi_fork(n):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=('Train policy on OpenAI Gym environment '
                                                                                                 'using pepg, ses, openes, ga, cma'))
-    parser.add_argument('env_name', type=str, help='car_racing etc - this is only used for labelling files etc, the actual environments are defined in train_envs')
+    parser.add_argument('env_name', type=str, help='carracing etc - this is only used for labelling files etc, the actual environments are defined in train_envs')
     parser.add_argument('-o', '--optimizer', type=str, help='ses, pepg, openes, ga, cma.', default='cma')
     parser.add_argument('--init_opt', type=str, default = '', help='which optimiser pickle file to initialise with')
     parser.add_argument('-e', '--num_episode', type=int, default=1, help='num episodes per trial (controller)')

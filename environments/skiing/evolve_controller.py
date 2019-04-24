@@ -66,7 +66,7 @@ def initialize_settings(sigma_init=0.1, sigma_decay=0.9999, init_opt = ''):
     global population, filebase, controller_filebase, model, num_params, es, PRECISION, SOLUTION_PACKET_SIZE, RESULT_PACKET_SIZE
     population = num_worker * num_worker_trial
     filebase = './log/'+env_name+'.'+optimizer+'.'+str(num_episode)+'.'+str(population)
-    controller_filebase = './controller/'+env_name+'.'+optimizer+'.'+str(num_episode)+'.'+str(population)
+    controller_filebase = './checkpoints/controller/'+env_name+'.'+optimizer+'.'+str(num_episode)+'.'+str(population)
 
     model = make_model()
 
