@@ -35,7 +35,7 @@ def main(args):
 
     checkpoint = ModelCheckpoint(checkpoint_path, monitor='val_loss')
     rnn, _ = get_rnn(x_train.shape[1:],
-                     lstim_dim=lstm_dim,
+                     lstm_dim=lstm_dim,
                      output_sequence_width=latent_dim,
                      num_mixtures=lstm_num_mixtures,
                      train=True)
