@@ -3,6 +3,7 @@ import math
 from tensorflow.keras.layers import Input, LSTM, Dense, Concatenate
 from tensorflow.keras.models import Model
 from tensorflow.keras import backend as K
+from tensorflow.keras.optimizers import Adam
 import tensorflow as tf
 
 
@@ -33,7 +34,9 @@ def get_rnn(input_shape,
             lstm_dim=256,
             output_sequence_width=32,
             num_mixtures=5,
-            train=False):
+            train=False,
+            lr=0.001,
+            grad_clip=1.0):
     inputs = Input(shape=input_shape, name='rnn_input')
     lstm = LSTM(lstm_dim,
                 return_sequences=True,
@@ -84,6 +87,6 @@ def get_rnn(input_shape,
             # Pass through gaussian, then do mean of log loss.
             return K.mean(-K.log(pdf(y, pis, mus, sigmas) + 1e-8), axis=(1,2))
 
-        rnn.compile(optimizer='adam', loss=rnn_loss)
+        rnn.compile(optimizer=Adam(lr=lr, clipvalue=grad_clip), loss=rnn_loss)
 
     return rnn, inference
