@@ -27,7 +27,7 @@ def main(args):
     data_shape = config.input_shape
     latent_dim = config.latent_dim
     
-    vae = get_vae(data_shape, 32, train=True)
+    vae = get_vae(data_shape, latent_dim, train=True)
     
     if load:
         vae.load_weights(checkpoint_path)

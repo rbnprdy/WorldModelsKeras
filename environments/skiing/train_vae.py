@@ -5,7 +5,6 @@ from random import shuffle
 
 import numpy as np
 from tensorflow.keras.callbacks import ModelCheckpoint
-import tensorflow.keras.backend as K
 
 import config
 
