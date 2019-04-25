@@ -209,7 +209,7 @@ def simulate(model, train_mode=False, render_mode=True, num_episode=5, seed=-1, 
         obs = obs.astype('float32') / 255.
         action = model.env.action_space.sample()
 
-        model.env.render("rbg_array")
+        model.env.render("human")
 
         if obs is None:
             obs = np.zeros(model.input_size)
@@ -222,8 +222,6 @@ def simulate(model, train_mode=False, render_mode=True, num_episode=5, seed=-1, 
                 model.env.render("human")
                 if RENDER_DELAY:
                     time.sleep(0.01)
-            else:
-                model.env.render("rbg_array")
 
             vae_encoded_obs = model.update(obs, t)
             controller_obs = np.concatenate([vae_encoded_obs,model.hidden])
