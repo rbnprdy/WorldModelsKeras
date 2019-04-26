@@ -28,6 +28,7 @@ def main(args):
     actions = raw_data['action']
 
     # Combine encoder output and action
+    print(zs.shape, actions.shape)
     x_train = np.concatenate([zs, actions], axis=-1)
     # Offset x and y
     x_train = x_train[:,:-1]
