@@ -52,7 +52,7 @@ def make_model():
     encoder = KerasModel(inputs=vae.input,
                          outputs=vae.get_layer('encoder').output)
 
-    rnn_train, rnn = get_rnn((None, Z_DIM + NUM_ACTIONS))
+    rnn_train, rnn = get_rnn((None, Z_DIM + NUM_ACTIONS), latent_dim=Z_DIM)
     rnn_train.load_weights('checkpoints/rnn.h5')
 
     controller = Controller()
