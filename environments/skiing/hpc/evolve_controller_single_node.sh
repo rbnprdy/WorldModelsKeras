@@ -3,7 +3,7 @@
 #PBS -l select=1:ncpus=28:mem=168gb:pcmem=6gb
 
 ### Specify a name for the job
-#PBS -N car_controller_single
+#PBS -N skiing_controller_single
 
 ### Specify the group name
 #PBS -W group_list=akoglu
