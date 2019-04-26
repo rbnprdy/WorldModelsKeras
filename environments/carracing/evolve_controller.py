@@ -61,11 +61,11 @@ SOLUTION_PACKET_SIZE = (5+num_params)*num_worker_trial
 RESULT_PACKET_SIZE = 4*num_worker_trial
 ###
 
-def initialize_settings(sigma_init=0.1, sigma_decay=0.9999, init_opt = ''):
+def initialize_settings(sigma_init=0.1, sigma_decay=0.9999, init_opt = '', log_dir='./log/', checkpoint_dir='./checkpoints/controller/'):
     global population, filebase, controller_filebase, model, num_params, es, PRECISION, SOLUTION_PACKET_SIZE, RESULT_PACKET_SIZE
     population = num_worker * num_worker_trial
-    filebase = './log/'+env_name+'.'+optimizer+'.'+str(num_episode)+'.'+str(population)
-    controller_filebase = './checkpoints/controller/'+env_name+'.'+optimizer+'.'+str(num_episode)+'.'+str(population)
+    filebase = log_dir+env_name+'.'+optimizer+'.'+str(num_episode)+'.'+str(population)
+    controller_filebase = checkpoint_dir+env_name+'.'+optimizer+'.'+str(num_episode)+'.'+str(population)
 
     model = make_model()
 
@@ -478,7 +478,7 @@ def main(args):
     cap_time_mode= (args.cap_time == 1)
     seed_start = args.seed_start
 
-    initialize_settings(args.sigma_init, args.sigma_decay, init_opt)
+    initialize_settings(args.sigma_init, args.sigma_decay, init_opt, args.log_dir, args.checkpoint_dir)
 
     sprint("process", rank, "out of total ", comm.Get_size(), "started")
 
@@ -530,6 +530,9 @@ if __name__ == "__main__":
     parser.add_argument('-s', '--seed_start', type=int, default=111, help='initial seed')
     parser.add_argument('--sigma_init', type=float, default=0.1, help='sigma_init')
     parser.add_argument('--sigma_decay', type=float, default=0.999, help='sigma_decay')
+
+    parser.add_argument('--log_dir', default='./log/')
+    parser.add_argument('--checkpoint_dir', default='./checkpoints/controller/')
 
     args = parser.parse_args()
     if "parent" == mpi_fork(args.num_worker+1): os.exit()
