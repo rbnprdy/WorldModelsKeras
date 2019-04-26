@@ -18,7 +18,7 @@ def main(args):
     epochs = args.epochs
     batch_size = args.batch_size
     checkpoint_path = args.checkpoint_path
-    load = args.load_path
+    load_path = args.load_path
 
     latent_dim = config.latent_dim
     lstm_dim = config.lstm_dim
