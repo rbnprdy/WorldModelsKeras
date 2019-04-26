@@ -237,7 +237,10 @@ def slave():
         new_model.make_env(current_env_name)
         #tracker2.print_diff()
         print('[DEBUG] made model env (slave)')
+        i = 0
         for solution in solutions:
+            print('[DEBUG] solution ', i, '/', len(solutions))
+            i = i + 1
             worker_id, jobidx, seed, train_mode, max_len, weights = solution
             assert (train_mode == 1 or train_mode == 0), str(train_mode)
             
@@ -514,8 +517,8 @@ if __name__ == "__main__":
     parser.add_argument('env_name', type=str, help='carracing etc - this is only used for labelling files etc, the actual environments are defined in train_envs')
     parser.add_argument('-o', '--optimizer', type=str, help='ses, pepg, openes, ga, cma.', default='cma')
     parser.add_argument('--init_opt', type=str, default = '', help='which optimiser pickle file to initialise with')
-    parser.add_argument('-e', '--num_episode', type=int, default=1, help='num episodes per trial (controller)')
-    parser.add_argument('-n', '--num_worker', type=int, default=4)
+    parser.add_argument('-e', '--num_episode', type=int, default=16, help='num episodes per trial (controller)')
+    parser.add_argument('-n', '--num_worker', type=int, default=64)
     parser.add_argument('-t', '--num_worker_trial', type=int, help='trials per worker', default=1)
     parser.add_argument('--eval_steps', type=int, default=25, help='evaluate every eval_steps step')
 
@@ -525,7 +528,7 @@ if __name__ == "__main__":
     parser.add_argument('--cap_time', type=int, default=0, help='set to 0 to disable capping timesteps to 2x of average.')
     parser.add_argument('--retrain', type=int, default=0, help='set to 0 to disable retraining every eval_steps if results suck.\n only works w/ ses, openes, pepg.')
     parser.add_argument('-s', '--seed_start', type=int, default=111, help='initial seed')
-    parser.add_argument('--sigma_init', type=float, default=0.50, help='sigma_init')
+    parser.add_argument('--sigma_init', type=float, default=0.1, help='sigma_init')
     parser.add_argument('--sigma_decay', type=float, default=0.999, help='sigma_decay')
 
     args = parser.parse_args()
