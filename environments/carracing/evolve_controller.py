@@ -199,11 +199,13 @@ def decode_result_packet(packet):
 def worker(weights, seed, max_len, new_model, train_mode_int=1):
 
     #print('WORKER working on environment {}'.format(_new_model.env_name))
+    print('[DEBUG] worker beginning')
 
     train_mode = (train_mode_int == 1)
     new_model.set_model_params(weights)
     reward_list, t_list = simulate(new_model,
         train_mode=train_mode, render_mode=False, num_episode=num_episode, seed=seed, max_len=max_len)
+    print('[DEBUG] worker simulation done')
     if batch_mode == 'min':
         reward = np.min(reward_list)
     else:
