@@ -44,7 +44,6 @@ def main(args):
 	    epochs=epochs,
 	    batch_size=batch_size,
 	    shuffle=True,
-        validation_split=0.1,
         callbacks=[checkpoint])
 
 
@@ -54,7 +53,7 @@ if __name__=='__main__':
 			help='The path to the training data directory.')
     parser.add_argument('--epochs', '-e', type=int, default=40,
 			help='The number of epochs to train for.')
-    parser.add_argument('--batch_size', '-b', type=int, default=128,
+    parser.add_argument('--batch_size', '-b', type=int, default=100,
 			help='The batch size to use for training.')
     parser.add_argument('--checkpoint_path', default='checkpoints/rnn.h5',
 			help='The path to save the checkpoint at.')
