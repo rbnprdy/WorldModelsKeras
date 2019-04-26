@@ -1,15 +1,14 @@
-from mpi4py import MPI
-import numpy as np
 import json
 import os
 import subprocess
 import sys
 import argparse
 import time
-
 import pickle
 import random
 
+from mpi4py import MPI
+import numpy as np
 from pympler.tracker import SummaryTracker
 
 from model import make_model, simulate
@@ -200,11 +199,13 @@ def decode_result_packet(packet):
 def worker(weights, seed, max_len, new_model, train_mode_int=1):
 
     #print('WORKER working on environment {}'.format(_new_model.env_name))
+    print('[DEBUG] worker beginning')
 
     train_mode = (train_mode_int == 1)
     new_model.set_model_params(weights)
     reward_list, t_list = simulate(new_model,
         train_mode=train_mode, render_mode=False, num_episode=num_episode, seed=seed, max_len=max_len)
+    print('[DEBUG] worker simulation done')
     if batch_mode == 'min':
         reward = np.min(reward_list)
     else:
@@ -214,25 +215,32 @@ def worker(weights, seed, max_len, new_model, train_mode_int=1):
 
 def slave():
 
+    print('[DEBUG] making model (slave)')
     new_model = make_model()
+    print('[DEBUG] made model (slave)')
     
     while 1:
+        print('[DEBUG] waiting for packet (slave')
         #print('waiting for packet')
         packet = comm.recv(source=0)
         #comm.Recv(packet, source=0)
         current_env_name = packet['current_env_name']
         packet = packet['result']
+        print('[DEBUG] received packet (slave)')
         
 
         assert(len(packet) == SOLUTION_PACKET_SIZE)
         solutions = decode_solution_packet(packet)
         results = []
         #tracker2 = SummaryTracker()
-        
+        print('[DEBUG] making model env (slave)')
         new_model.make_env(current_env_name)
         #tracker2.print_diff()
-
+        print('[DEBUG] made model env (slave)')
+        i = 0
         for solution in solutions:
+            print('[DEBUG] solution ', i, '/', len(solutions))
+            i = i + 1
             worker_id, jobidx, seed, train_mode, max_len, weights = solution
             assert (train_mode == 1 or train_mode == 0), str(train_mode)
             
@@ -247,10 +255,11 @@ def slave():
             results.append([worker_id, jobidx, fitness, timesteps])
 
         new_model.env.close()
-
+        print('[DEBUG] sending result packet (slave)')
         result_packet = encode_result_packet(results)
         assert len(result_packet) == RESULT_PACKET_SIZE
         comm.Send(result_packet, dest=0)
+        print('[DEBUG] sent result packet (slave)')
         #print('slave: completed solutions')
         
 
@@ -331,8 +340,9 @@ def master():
     t = 0
 
     current_env_name = train_envs[0]
+    print('[DEBUG] making env (in master)')
     model.make_env(current_env_name)
-
+    print('[DEBUG] made env (in master)')
     history = []
     eval_log = []
     best_reward_eval = 0
@@ -352,6 +362,8 @@ def master():
         else:
             seeds = seeder.next_batch(es.popsize)
 
+        print('[DEBUG] encoding packets')
+
         packet_list = encode_solution_packets(seeds, solutions, max_len=max_length)
 
         reward_list = np.zeros(population)
@@ -361,10 +373,13 @@ def master():
         for current_env_name in train_envs:
             #print('before send packets')
             #tracker1 = SummaryTracker()
+            print('[DEBUG] sending packets to slaves')
             send_packets_to_slaves(packet_list, current_env_name)
             #print('between send and receive')
+            print('[DEBUG] sent packets to slaves')
             #tracker1.print_diff()
             packets_from_slaves = receive_packets_from_slaves()
+            print('[DEBUG] received packets to slaves')
             #print('after receive')
             #tracker1.print_diff()
             reward_list = reward_list  + packets_from_slaves[:, 0]
@@ -383,9 +398,12 @@ def master():
         avg_reward = int(np.mean(reward_list)*100)/100. # get average reward
         std_reward = int(np.std(reward_list)*100)/100. # get std reward
 
+        print('[DEBUG] telling es')
         es.tell(reward_list)
+        print('[DEBUG] told es')
 
         es_solution = es.result()
+        print('[DEBUG] got es result')
         model_params = es_solution[0] # best historical solution
         reward = es_solution[1] # best reward
         curr_reward = es_solution[2] # best of the current batch
@@ -474,33 +492,33 @@ def mpi_fork(n):
     Returns "parent" for original parent, "child" for MPI children
     (from https://github.com/garymcintire/mpi_util/)
     """
-    if n<=1:
-        return "child"
-    if os.getenv("IN_MPI") is None:
-        env = os.environ.copy()
-        env.update(
-            MKL_NUM_THREADS="1",
-            OMP_NUM_THREADS="1",
-            IN_MPI="1"
-        )
-        print( ["mpirun", "-np", str(n), sys.executable] + sys.argv)
-        subprocess.check_call(["mpirun", "-np", str(n), sys.executable] +['-u']+ sys.argv, env=env)
-        return "parent"
-    else:
-        global nworkers, rank
-        nworkers = comm.Get_size()
-        rank = comm.Get_rank()
-        print('assigning the rank and nworkers', nworkers, rank)
-        return "child"
+    # if n<=1:
+    #     return "child"
+    # if os.getenv("IN_MPI") is None:
+    #     env = os.environ.copy()
+    #     env.update(
+    #         MKL_NUM_THREADS="1",
+    #         OMP_NUM_THREADS="1",
+    #         IN_MPI="1"
+    #     )
+    #     print( ["mpirun", "-np", str(n), sys.executable] + sys.argv)
+    #     subprocess.check_call(["mpirun", "-np", str(n), sys.executable] +['-u']+ sys.argv, env=env)
+    #     return "parent"
+    # else:
+    global nworkers, rank
+    nworkers = comm.Get_size()
+    rank = comm.Get_rank()
+    print('assigning the rank and nworkers', nworkers, rank)
+    return "child"
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=('Train policy on OpenAI Gym environment '
-                                                                                                'using pepg, ses, openes, ga, cma'))
-    parser.add_argument('env_name', type=str, help='car_racing etc - this is only used for labelling files etc, the actual environments are defined in train_envs')
+                                                  'using pepg, ses, openes, ga, cma'))
+    parser.add_argument('env_name', type=str, help='carracing etc - this is only used for labelling files etc, the actual environments are defined in train_envs')
     parser.add_argument('-o', '--optimizer', type=str, help='ses, pepg, openes, ga, cma.', default='cma')
     parser.add_argument('--init_opt', type=str, default = '', help='which optimiser pickle file to initialise with')
-    parser.add_argument('-e', '--num_episode', type=int, default=1, help='num episodes per trial (controller)')
-    parser.add_argument('-n', '--num_worker', type=int, default=4)
+    parser.add_argument('-e', '--num_episode', type=int, default=16, help='num episodes per trial (controller)')
+    parser.add_argument('-n', '--num_worker', type=int, default=64)
     parser.add_argument('-t', '--num_worker_trial', type=int, help='trials per worker', default=1)
     parser.add_argument('--eval_steps', type=int, default=25, help='evaluate every eval_steps step')
 
@@ -510,7 +528,7 @@ if __name__ == "__main__":
     parser.add_argument('--cap_time', type=int, default=0, help='set to 0 to disable capping timesteps to 2x of average.')
     parser.add_argument('--retrain', type=int, default=0, help='set to 0 to disable retraining every eval_steps if results suck.\n only works w/ ses, openes, pepg.')
     parser.add_argument('-s', '--seed_start', type=int, default=111, help='initial seed')
-    parser.add_argument('--sigma_init', type=float, default=0.50, help='sigma_init')
+    parser.add_argument('--sigma_init', type=float, default=0.1, help='sigma_init')
     parser.add_argument('--sigma_decay', type=float, default=0.999, help='sigma_decay')
 
     args = parser.parse_args()

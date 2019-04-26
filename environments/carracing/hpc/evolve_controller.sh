@@ -1,6 +1,6 @@
 # Your job will use 1 node, 28 cores, and 168gb of memory total.
 #PBS -q standard
-#PBS -l select=1:ncpus=65:mem=168gb:pcmem=6gb
+#PBS -l select=4:ncpus=16:mem=168gb:pcmem=6gb
 
 ### Specify a name for the job
 #PBS -N car_controller
@@ -30,5 +30,5 @@ module load singularity
 cd /extra/rubenpurdy/WorldModelsKeras/environments/carracing
 
 date
-mpirun -np 65 singularity exec /extra/rubenpurdy/images/gym_cpu.simg xvfb-run -a -s "-screen 0 1400x900x24 +extension RANDR" -- python evolve_controller.py carracing
+mpirun -np 64 singularity exec /extra/rubenpurdy/images/gym_cpu.simg xvfb-run -a -s "-screen 0 1400x900x24 +extension RANDR" -- python evolve_controller.py carracing -n 63
 date

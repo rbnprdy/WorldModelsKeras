@@ -1,9 +1,9 @@
 # Your job will use 1 node, 28 cores, and 168gb of memory total.
 #PBS -q standard
-#PBS -l select=1:ncpus=28:mem=168gb:pcmem=6gb:ngpus=1
+#PBS -l select=4:ncpus=16:mem=168gb:pcmem=6gb
 
 ### Specify a name for the job
-#PBS -N skiing_controller
+#PBS -N ski_controller
 
 ### Specify the group name
 #PBS -W group_list=akoglu
@@ -13,10 +13,10 @@
 
 ### CPUtime required in hhh:mm:ss.
 ### Leading 0's can be omitted e.g 48:0:0 sets 48 hours
-#PBS -l cput=280:00:00
+#PBS -l cput=1560:00:00
 
 ### Walltime is how long your job will run
-#PBS -l walltime=10:00:00
+#PBS -l walltime=24:00:00
 
 ### Email me at beginning, end, and abnormal end
 #PBS -m bea
@@ -24,10 +24,11 @@
 
 ### EXPERIMENTS
 
+module load openmpi
 module load singularity
 
 cd /extra/rubenpurdy/WorldModelsKeras/environments/skiing
 
 date
-singularity exec --nv /extra/rubenpurdy/images/gym.simg xvfb-run -a -s "-screen 0 1400x900x24 +extension RANDR" -- python evolve_controller.py skiing --num_worker 28 --num_worker_trial 2 --num_episode 4
+mpirun -np 64 singularity exec /extra/rubenpurdy/images/gym_cpu.simg xvfb-run -a -s "-screen 0 1400x900x24 +extension RANDR" -- python evolve_controller.py carracing -n 63
 date
