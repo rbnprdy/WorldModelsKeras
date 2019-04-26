@@ -18,6 +18,7 @@ def main(args):
     epochs = args.epochs
     batch_size = args.batch_size
     checkpoint_path = args.checkpoint_path
+    load = args.load
 
     latent_dim = config.latent_dim
     lstm_dim = config.lstm_dim
@@ -33,18 +34,20 @@ def main(args):
     x_train = x_train[:,:-1]
     y_train = zs[:,1:]
 
-    checkpoint = ModelCheckpoint(checkpoint_path, monitor='val_loss')
+    checkpoint = ModelCheckpoint(checkpoint_path, monitor='train_loss')
     rnn, _ = get_rnn(x_train.shape[1:],
                      lstm_dim=lstm_dim,
                      output_sequence_width=latent_dim,
                      num_mixtures=lstm_num_mixtures,
                      train=True)
 
+    if load:
+        rnn.load_weights(checkpoint_path)
+
     rnn.fit(x_train, y_train,
             epochs=epochs,
             batch_size=batch_size,
             shuffle=True,
-            validation_split=0.1,
             callbacks=[checkpoint])
 
 
@@ -54,8 +57,9 @@ if __name__=='__main__':
 			help='The path to the training data directory.')
     parser.add_argument('--epochs', '-e', type=int, default=40,
 			help='The number of epochs to train for.')
-    parser.add_argument('--batch_size', '-b', type=int, default=128,
+    parser.add_argument('--batch_size', '-b', type=int, default=100,
 			help='The batch size to use for training.')
     parser.add_argument('--checkpoint_path', default='checkpoints/rnn.h5',
 			help='The path to save the checkpoint at.')
+    parser.add_argument('--load', action='store_true')
     main(parser.parse_args())
