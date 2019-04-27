@@ -199,13 +199,11 @@ def decode_result_packet(packet):
 def worker(weights, seed, max_len, new_model, train_mode_int=1):
 
     #print('WORKER working on environment {}'.format(_new_model.env_name))
-    print('[DEBUG] worker beginning')
 
     train_mode = (train_mode_int == 1)
     new_model.set_model_params(weights)
     reward_list, t_list = simulate(new_model,
         train_mode=train_mode, render_mode=False, num_episode=num_episode, seed=seed, max_len=max_len)
-    print('[DEBUG] worker simulation done')
     if batch_mode == 'min':
         reward = np.min(reward_list)
     else:
@@ -215,31 +213,24 @@ def worker(weights, seed, max_len, new_model, train_mode_int=1):
 
 def slave():
 
-    print('[DEBUG] making model (slave)')
     new_model = make_model()
-    print('[DEBUG] made model (slave)')
     
     while 1:
-        print('[DEBUG] waiting for packet (slave')
         #print('waiting for packet')
         packet = comm.recv(source=0)
         #comm.Recv(packet, source=0)
         current_env_name = packet['current_env_name']
         packet = packet['result']
-        print('[DEBUG] received packet (slave)')
         
 
         assert(len(packet) == SOLUTION_PACKET_SIZE)
         solutions = decode_solution_packet(packet)
         results = []
         #tracker2 = SummaryTracker()
-        print('[DEBUG] making model env (slave)')
         new_model.make_env(current_env_name)
         #tracker2.print_diff()
-        print('[DEBUG] made model env (slave)')
         i = 0
         for solution in solutions:
-            print('[DEBUG] solution ', i, '/', len(solutions))
             i = i + 1
             worker_id, jobidx, seed, train_mode, max_len, weights = solution
             assert (train_mode == 1 or train_mode == 0), str(train_mode)
@@ -255,11 +246,9 @@ def slave():
             results.append([worker_id, jobidx, fitness, timesteps])
 
         new_model.env.close()
-        print('[DEBUG] sending result packet (slave)')
         result_packet = encode_result_packet(results)
         assert len(result_packet) == RESULT_PACKET_SIZE
         comm.Send(result_packet, dest=0)
-        print('[DEBUG] sent result packet (slave)')
         #print('slave: completed solutions')
         
 
@@ -340,9 +329,7 @@ def master():
     t = 0
 
     current_env_name = train_envs[0]
-    print('[DEBUG] making env (in master)')
     model.make_env(current_env_name)
-    print('[DEBUG] made env (in master)')
     history = []
     eval_log = []
     best_reward_eval = 0
@@ -362,8 +349,6 @@ def master():
         else:
             seeds = seeder.next_batch(es.popsize)
 
-        print('[DEBUG] encoding packets')
-
         packet_list = encode_solution_packets(seeds, solutions, max_len=max_length)
 
         reward_list = np.zeros(population)
@@ -373,13 +358,10 @@ def master():
         for current_env_name in train_envs:
             #print('before send packets')
             #tracker1 = SummaryTracker()
-            print('[DEBUG] sending packets to slaves')
             send_packets_to_slaves(packet_list, current_env_name)
             #print('between send and receive')
-            print('[DEBUG] sent packets to slaves')
             #tracker1.print_diff()
             packets_from_slaves = receive_packets_from_slaves()
-            print('[DEBUG] received packets to slaves')
             #print('after receive')
             #tracker1.print_diff()
             reward_list = reward_list  + packets_from_slaves[:, 0]

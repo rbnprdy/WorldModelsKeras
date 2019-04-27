@@ -203,7 +203,7 @@ def simulate(model, train_mode=False, render_mode=True, num_episode=5, seed=-1, 
     reward_list = []
     t_list = []
 
-    max_episode_length = 3000
+    max_episode_length = 1000
 
     if max_len > 0:
         if max_len < max_episode_length:
@@ -221,8 +221,6 @@ def simulate(model, train_mode=False, render_mode=True, num_episode=5, seed=-1, 
         obs = model.env.reset()
         obs = obs.astype('float32') / 255.
         action = model.env.action_space.sample()
-
-        model.env.render("human")
 
         if obs is None:
             obs = np.zeros(model.input_size)
