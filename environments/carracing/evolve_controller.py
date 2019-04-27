@@ -199,13 +199,11 @@ def decode_result_packet(packet):
 def worker(weights, seed, max_len, new_model, train_mode_int=1):
 
     #print('WORKER working on environment {}'.format(_new_model.env_name))
-    print('[DEBUG] worker beginning')
 
     train_mode = (train_mode_int == 1)
     new_model.set_model_params(weights)
     reward_list, t_list = simulate(new_model,
         train_mode=train_mode, render_mode=False, num_episode=num_episode, seed=seed, max_len=max_len)
-    print('[DEBUG] worker simulation done')
     if batch_mode == 'min':
         reward = np.min(reward_list)
     else:
@@ -233,7 +231,6 @@ def slave():
         #tracker2.print_diff()
         i = 0
         for solution in solutions:
-            print('[DEBUG] solution ', i+1, '/', len(solutions))
             i = i + 1
             worker_id, jobidx, seed, train_mode, max_len, weights = solution
             assert (train_mode == 1 or train_mode == 0), str(train_mode)
@@ -252,7 +249,6 @@ def slave():
         result_packet = encode_result_packet(results)
         assert len(result_packet) == RESULT_PACKET_SIZE
         comm.Send(result_packet, dest=0)
-        print('[DEBUG] sent result packet (slave)')
         #print('slave: completed solutions')
         
 
@@ -362,13 +358,10 @@ def master():
         for current_env_name in train_envs:
             #print('before send packets')
             #tracker1 = SummaryTracker()
-            print('[DEBUG] sending packets to slaves')
             send_packets_to_slaves(packet_list, current_env_name)
             #print('between send and receive')
-            print('[DEBUG] sent packets to slaves')
             #tracker1.print_diff()
             packets_from_slaves = receive_packets_from_slaves()
-            print('[DEBUG] received packets to slaves')
             #print('after receive')
             #tracker1.print_diff()
             reward_list = reward_list  + packets_from_slaves[:, 0]
@@ -387,12 +380,9 @@ def master():
         avg_reward = int(np.mean(reward_list)*100)/100. # get average reward
         std_reward = int(np.std(reward_list)*100)/100. # get std reward
 
-        print('[DEBUG] telling es')
         es.tell(reward_list)
-        print('[DEBUG] told es')
 
         es_solution = es.result()
-        print('[DEBUG] got es result')
         model_params = es_solution[0] # best historical solution
         reward = es_solution[1] # best reward
         curr_reward = es_solution[2] # best of the current batch
