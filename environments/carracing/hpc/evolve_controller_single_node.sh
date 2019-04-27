@@ -30,5 +30,5 @@ module load singularity
 cd /extra/rubenpurdy/WorldModelsKeras/environments/carracing
 
 date
-mpirun -np 28 singularity exec /extra/rubenpurdy/images/gym_cpu.simg xvfb-run -a -s "-screen 0 1400x900x24 +extension RANDR" -- python evolve_controller.py carracing -n 27 -t 2 --log_dir './log_single_node' --checkpoint_dir './checkpoints/controller_single_node'
+singularity exec /extra/rubenpurdy/images/gym_cpu.simg xvfb-run -a -s "-screen 0 1400x900x24 +extension RANDR" -- python evolve_controller.py carracing -n 27 -t 2
 date
