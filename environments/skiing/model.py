@@ -10,10 +10,10 @@ import argparse
 from tensorflow.keras.models import Model as KerasModel
 import tensorflow as tf
 import tensorflow.keras.backend as K
+import gym
 from gym.wrappers import Monitor
 import numpy as np
 
-from env import make_env
 import config
 
 sys.path.append('../../')
@@ -111,7 +111,9 @@ class Model:
     def make_env(self, env_name, seed=-1, render_mode=False):
         self.render_mode = render_mode
         self.env_name = env_name
-        self.env = make_env(env_name, seed=seed, render_mode=render_mode)
+        self.env = gym.make('Skiing-v0')
+        self.env = SkiingWrapper(env)
+        # self.env = make_env(env_name, seed=seed, render_mode=render_mode)
 
 
     def get_action(self, x, t=0, mean_mode=False):
