@@ -203,15 +203,11 @@ def simulate(model, train_mode=False, render_mode=True, num_episode=5, seed=-1, 
 
     for episode in range(num_episode):
 
-        print('[DEBUG] simulating episode ', episode)
-
         model.reset()
 
         obs = model.env.reset()
         obs = obs.astype('float32') / 255.
         action = model.env.action_space.sample()
-
-        model.env.render("human")
 
         if obs is None:
             obs = np.zeros(model.input_size)

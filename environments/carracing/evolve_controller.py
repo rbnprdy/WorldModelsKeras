@@ -215,31 +215,25 @@ def worker(weights, seed, max_len, new_model, train_mode_int=1):
 
 def slave():
 
-    print('[DEBUG] making model (slave)')
     new_model = make_model()
-    print('[DEBUG] made model (slave)')
     
     while 1:
-        print('[DEBUG] waiting for packet (slave')
         #print('waiting for packet')
         packet = comm.recv(source=0)
         #comm.Recv(packet, source=0)
         current_env_name = packet['current_env_name']
         packet = packet['result']
-        print('[DEBUG] received packet (slave)')
         
 
         assert(len(packet) == SOLUTION_PACKET_SIZE)
         solutions = decode_solution_packet(packet)
         results = []
         #tracker2 = SummaryTracker()
-        print('[DEBUG] making model env (slave)')
         new_model.make_env(current_env_name)
         #tracker2.print_diff()
-        print('[DEBUG] made model env (slave)')
         i = 0
         for solution in solutions:
-            print('[DEBUG] solution ', i, '/', len(solutions))
+            print('[DEBUG] solution ', i+1, '/', len(solutions))
             i = i + 1
             worker_id, jobidx, seed, train_mode, max_len, weights = solution
             assert (train_mode == 1 or train_mode == 0), str(train_mode)
@@ -255,7 +249,6 @@ def slave():
             results.append([worker_id, jobidx, fitness, timesteps])
 
         new_model.env.close()
-        print('[DEBUG] sending result packet (slave)')
         result_packet = encode_result_packet(results)
         assert len(result_packet) == RESULT_PACKET_SIZE
         comm.Send(result_packet, dest=0)
@@ -340,9 +333,7 @@ def master():
     t = 0
 
     current_env_name = train_envs[0]
-    print('[DEBUG] making env (in master)')
     model.make_env(current_env_name)
-    print('[DEBUG] made env (in master)')
     history = []
     eval_log = []
     best_reward_eval = 0
@@ -361,8 +352,6 @@ def master():
             seeds = seeds+seeds
         else:
             seeds = seeder.next_batch(es.popsize)
-
-        print('[DEBUG] encoding packets')
 
         packet_list = encode_solution_packets(seeds, solutions, max_len=max_length)
 
