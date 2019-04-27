@@ -15,6 +15,7 @@ from gym.wrappers import Monitor
 import numpy as np
 
 import config
+from env import SkiingWrapper
 
 sys.path.append('../../')
 from models.vae import get_vae
