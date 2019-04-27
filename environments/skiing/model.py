@@ -113,7 +113,7 @@ class Model:
         self.render_mode = render_mode
         self.env_name = env_name
         self.env = gym.make('Skiing-v0')
-        self.env = SkiingWrapper(env)
+        self.env = SkiingWrapper(self.env)
         # self.env = make_env(env_name, seed=seed, render_mode=render_mode)
 
 
