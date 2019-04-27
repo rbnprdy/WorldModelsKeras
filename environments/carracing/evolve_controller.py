@@ -481,24 +481,24 @@ def mpi_fork(n):
     Returns "parent" for original parent, "child" for MPI children
     (from https://github.com/garymcintire/mpi_util/)
     """
-    # if n<=1:
-    #     return "child"
-    # if os.getenv("IN_MPI") is None:
-    #     env = os.environ.copy()
-    #     env.update(
-    #         MKL_NUM_THREADS="1",
-    #         OMP_NUM_THREADS="1",
-    #         IN_MPI="1"
-    #     )
-    #     print( ["mpirun", "-np", str(n), sys.executable] + sys.argv)
-    #     subprocess.check_call(["mpirun", "-np", str(n), sys.executable] +['-u']+ sys.argv, env=env)
-    #     return "parent"
-    # else:
-    global nworkers, rank
-    nworkers = comm.Get_size()
-    rank = comm.Get_rank()
-    print('assigning the rank and nworkers', nworkers, rank)
-    return "child"
+    if n<=1:
+        return "child"
+    if os.getenv("IN_MPI") is None:
+        env = os.environ.copy()
+        env.update(
+            MKL_NUM_THREADS="1",
+            OMP_NUM_THREADS="1",
+            IN_MPI="1"
+        )
+        print( ["mpirun", "-np", str(n), sys.executable] + sys.argv)
+        subprocess.check_call(["mpirun", "-np", str(n), sys.executable] +['-u']+ sys.argv, env=env)
+        return "parent"
+    else:
+        global nworkers, rank
+        nworkers = comm.Get_size()
+        rank = comm.Get_rank()
+        print('assigning the rank and nworkers', nworkers, rank)
+        return "child"
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=('Train policy on OpenAI Gym environment '
