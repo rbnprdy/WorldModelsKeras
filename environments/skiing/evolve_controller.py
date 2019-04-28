@@ -487,6 +487,13 @@ def mpi_fork(n):
     #     subprocess.check_call(["mpirun", "-np", str(n), sys.executable] +['-u']+ sys.argv, env=env)
     #     return "parent"
     # else:
+    if os.getenv("IN_MPI") is None:
+        env = os.environ.copy()
+        env.update(
+            MKL_NUM_THREADS="1",
+            OMP_NUM_THREADS="1",
+            IN_MPI="1"
+        )
     global nworkers, rank
     nworkers = comm.Get_size()
     rank = comm.Get_rank()
