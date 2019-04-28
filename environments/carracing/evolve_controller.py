@@ -254,6 +254,8 @@ def slave():
 
 def send_packets_to_slaves(packet_list, current_env_name):
     num_worker = comm.Get_size()
+    print('num_worker:', num_worker)
+    print('packet_list:', len(packet_list))
     assert len(packet_list) == num_worker-1
     for i in range(1, num_worker):
         packet = packet_list[i-1]
