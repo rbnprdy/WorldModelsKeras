@@ -27,7 +27,7 @@
 module load openmpi
 module load singularity
 
-cd /extra/rubenpurdy/WorldModelsKeras/environments/carracing
+cd /extra/rubenpurdy/WorldModelsKeras/environments/skiing
 
 date
 mpirun -np 27 singularity exec /extra/rubenpurdy/images/gym_cpu.simg xvfb-run -a -s "-screen 0 1400x900x24 +extension RANDR" -- python evolve_controller.py skiing -n 26
