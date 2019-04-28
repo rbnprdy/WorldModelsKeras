@@ -28,7 +28,7 @@ def main(args):
     actions = raw_data['action']
 
     # Combine encoder output and action
-    x_train = np.concatenate([zs, np.expand_dims(actions, axis=-1)], axis=-1)
+    x_train = np.concatenate([zs, actions], axis=-1)
     # Offset x and y
     x_train = x_train[:,:-1]
     y_train = zs[:,1:]
@@ -41,20 +41,20 @@ def main(args):
                      train=True)
 
     rnn.fit(x_train, y_train,
-	    epochs=epochs,
-	    batch_size=batch_size,
-	    shuffle=True,
-        callbacks=[checkpoint])
+            epochs=epochs,
+            batch_size=batch_size,
+            shuffle=True,
+            callbacks=[checkpoint])
 
 
 if __name__=='__main__':
     parser = argparse.ArgumentParser(description='Train the rnn.')
     parser.add_argument('--data_dir', '-d', default='data/',
-			help='The path to the training data directory.')
+			            help='The path to the training data directory.')
     parser.add_argument('--epochs', '-e', type=int, default=40,
-			help='The number of epochs to train for.')
+			            help='The number of epochs to train for.')
     parser.add_argument('--batch_size', '-b', type=int, default=100,
-			help='The batch size to use for training.')
+			            help='The batch size to use for training.')
     parser.add_argument('--checkpoint_path', default='checkpoints/rnn.h5',
-			help='The path to save the checkpoint at.')
+			            help='The path to save the checkpoint at.')
     main(parser.parse_args())

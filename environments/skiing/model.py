@@ -53,7 +53,7 @@ def make_model():
     encoder = KerasModel(inputs=vae.input,
                          outputs=vae.get_layer('encoder').output)
 
-    rnn_train, rnn = get_rnn((None, Z_DIM + 1), output_sequence_width=Z_DIM)
+    rnn_train, rnn = get_rnn((None, Z_DIM + NUM_ACTIONS), output_sequence_width=Z_DIM)
     rnn_train.load_weights('checkpoints/rnn.h5')
 
     controller = Controller()
@@ -114,8 +114,6 @@ class Model:
         self.env_name = env_name
         self.env = gym.make('Skiing-v0')
         self.env = SkiingWrapper(self.env)
-        # self.env = make_env(env_name, seed=seed, render_mode=render_mode)
-
 
     def get_action(self, x, t=0, mean_mode=False):
         # if mean_mode = True, ignore sampling.
@@ -138,9 +136,8 @@ class Model:
         if self.sample_output:
             h = sample(h)
 
-        # Softmax and argmax output to get discrete action
+        # Softmax output to get probabilities
         h = np.exp(h) / np.sum(np.exp(h), axis=0)
-        h = np.argmax(h)
 
         return h
 
@@ -245,7 +242,8 @@ def simulate(model, train_mode=False, render_mode=True, num_episode=5, seed=-1, 
             else:
                 action = model.get_action(controller_obs, t=t, mean_mode=False)
 
-            obs, reward, done, info = model.env.step(action)
+            # Step with discrete action
+            obs, reward, done, info = model.env.step(np.argmax(action))
             obs = obs.astype('float32') / 255.
 
             input_to_rnn = [np.array([[np.concatenate([vae_encoded_obs, action])]]),np.array([model.hidden]),np.array([model.cell_values])]
