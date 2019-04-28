@@ -41,9 +41,14 @@ def main(args):
     mu_dataset = []
     sigma_dataset = []
     z_dataset = []
-    for filename in filelist:
+    for i, filename in enumerate(filelist):
+        print('File', i, '/', len(filelist))
         raw_data = np.load(os.path.join(data_dir, filename))
-        action_dataset.append(raw_data['action'])
+        # 1 hot encode actions for discrete task
+        raw_data_action = raw_data['action']
+        one_hot_action = np.zeros((len(raw_data_action), config.action_dim))
+        one_hot_action[np.arange(len(raw_data_action)), raw_data_action] = 1
+        action_dataset.append(one_hot_action)
         mu, sigma, z = encoder.predict(raw_data['obs'].astype(np.float) / 255.)
         mu_dataset.append(mu)
         sigma_dataset.append(sigma)
