@@ -13,10 +13,10 @@
 
 ### CPUtime required in hhh:mm:ss.
 ### Leading 0's can be omitted e.g 48:0:0 sets 48 hours
-#PBS -l cput=7:00:00
+#PBS -l cput=224:00:00
 
 ### Walltime is how long your job will run
-#PBS -l walltime=0:15:00
+#PBS -l walltime=8:00:00
 
 ### Email me at beginning, end, and abnormal end
 #PBS -m bea
