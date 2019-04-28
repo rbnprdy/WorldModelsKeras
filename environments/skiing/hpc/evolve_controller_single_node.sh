@@ -13,10 +13,10 @@
 
 ### CPUtime required in hhh:mm:ss.
 ### Leading 0's can be omitted e.g 48:0:0 sets 48 hours
-#PBS -l cput=224:00:00
+#PBS -l cput=7:00:00
 
 ### Walltime is how long your job will run
-#PBS -l walltime=8:00:00
+#PBS -l walltime=0:15:00
 
 ### Email me at beginning, end, and abnormal end
 #PBS -m bea
@@ -30,5 +30,5 @@ module load singularity
 cd /extra/rubenpurdy/WorldModelsKeras/environments/carracing
 
 date
-mpirun -np 27 singularity exec /extra/rubenpurdy/images/gym_cpu.simg xvfb-run -a -s "-screen 0 1400x900x24 +extension RANDR" -- python evolve_controller.py carracing -n 26
+mpirun -np 27 singularity exec /extra/rubenpurdy/images/gym_cpu.simg xvfb-run -a -s "-screen 0 1400x900x24 +extension RANDR" -- python evolve_controller.py skiing -n 26
 date
