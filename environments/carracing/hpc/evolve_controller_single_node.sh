@@ -16,7 +16,7 @@
 #PBS -l cput=280:00:00
 
 ### Walltime is how long your job will run
-#PBS -l walltime=10:00:00
+#PBS -l walltime=28:00:00
 
 ### Email me at beginning, end, and abnormal end
 #PBS -m bea
