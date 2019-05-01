@@ -29,5 +29,5 @@ module load singularity
 cd /extra/rubenpurdy/WorldModelsKeras/environments/carracing
 
 date
-singularity exec --nv /extra/rubenpurdy/images/gym.simg python train_rnn.py --checkpoint_path 'checkpoints/rnn_v2.h5' --load_path 'checkpoints/rnn.h5'
+singularity exec --nv /extra/rubenpurdy/images/gym.simg python train_rnn.py --checkpoint_path 'checkpoints/rnn.h5'
 date
