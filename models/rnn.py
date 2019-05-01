@@ -55,10 +55,9 @@ def get_rnn(input_shape,
     x, _, _ = lstm(inputs)
     pis_flat = Dense(output_sequence_width*num_mixtures, name='pis')(x)
     mus_flat = Dense(output_sequence_width*num_mixtures, name='mus')(x)
-    sigmas_flat = Dense(output_sequence_width*num_mixtures,
-                        activation=K.exp,
+    logsigmas_flat = Dense(output_sequence_width*num_mixtures,
                         name='sigmas')(x)
-    outputs = Concatenate()([pis_flat, mus_flat, sigmas_flat])
+    outputs = Concatenate()([pis_flat, mus_flat, logsigmas_flat])
     rnn = Model(inputs, outputs, name='mdn-rnn-training')
 
     if train:
@@ -70,12 +69,14 @@ def get_rnn(input_shape,
             # Extract flattened variables
             pis_flat = y_pred[:,:,:flat]
             mus_flat = y_pred[:,:,flat:flat*2]
-            sigmas_flat = y_pred[:,:,flat*2:flat*3]
+            logsigmas_flat = y_pred[:,:,flat*2:flat*3]
             # Reshape to (batch, time, num_mixtures, output_sequence_width)
             shape = [-1, rollout, num_mixtures, output_sequence_width]
             pis = K.reshape(pis_flat, shape)
             mus = K.reshape(mus_flat, shape)
-            sigmas = K.reshape(sigmas_flat, shape)
+            logsigmas = K.reshape(logsigmas_flat, shape)
+            # Exponentiate sigmas
+            sigmas = K.exp(logsigmas)
             # Send pis through softmax
             pis = K.exp(pis) / K.sum(K.exp(pis), axis=2, keepdims=True)
             # Reshape y to be (batch, time, output_sequence_width)
@@ -87,6 +88,7 @@ def get_rnn(input_shape,
             # Pass through gaussian, then do mean of log loss.
             return K.mean(-K.log(pdf(y, pis, mus, sigmas) + 1e-8), axis=(1,2))
 
-        rnn.compile(optimizer=Adam(lr=lr, clipvalue=grad_clip), loss=rnn_loss)
+        # rnn.compile(optimizer=Adam(lr=lr, clipvalue=grad_clip), loss=rnn_loss)
+        rnn.compile(loss=rnn_loss, optimizer='rmsprop')
 
     return rnn, inference
